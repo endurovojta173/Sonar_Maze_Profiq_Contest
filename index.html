@@ -1,144 +1,150 @@
-```html
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sonar Maze</title>
     <style>
-        body,
-        html {
+        body {
             margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
             overflow: hidden;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             font-family: sans-serif;
             color: #fff;
-            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
-        #gameContainer {
+        #game-container {
             position: relative;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
+            background: #050505;
         }
 
         canvas {
-            max-width: 100%;
-            max-height: 100%;
+            width: 100%;
+            height: 100%;
+            max-width: 1000px;
+            max-height: 800px;
             object-fit: contain;
-            aspect-ratio: 5/4;
-            background: #000;
+            aspect-ratio: 5 / 4;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);
         }
 
         .overlay {
             position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.85);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(5px);
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
-            text-align: center;
+            align-items: center;
             z-index: 10;
-            backdrop-filter: blur(5px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
         }
 
-        .hidden {
-            display: none !important;
+        .overlay.active {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         h1 {
             font-size: 3rem;
-            color: #0ff;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
             text-shadow: 0 0 15px #0ff;
-            margin-bottom: 10px;
+            text-align: center;
         }
 
-        p {
-            font-size: 1.2rem;
-            line-height: 1.5;
-            margin-bottom: 30px;
-            max-width: 600px;
-        }
-
-        button {
-            background: transparent;
-            color: #0ff;
-            border: 2px solid #0ff;
+        .btn {
             padding: 15px 40px;
             font-size: 1.5rem;
-            cursor: pointer;
-            text-transform: uppercase;
+            font-family: sans-serif;
             font-weight: bold;
-            transition: all 0.3s;
-            border-radius: 5px;
+            letter-spacing: 2px;
+            background: transparent;
+            color: #fff;
+            border: 2px solid #0ff;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+            transition: all 0.2s;
+            text-transform: uppercase;
         }
 
-        button:hover {
-            background: #0ff;
-            color: #000;
-            box-shadow: 0 0 25px #0ff;
+        .btn:hover {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.8);
         }
 
-        #uiLayer {
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        #ui-layer {
             position: absolute;
             top: 20px;
-            left: 0;
             width: 100%;
+            max-width: 1000px;
             display: flex;
             justify-content: center;
             pointer-events: none;
             z-index: 5;
         }
 
-        #pulses {
-            font-size: 1.8rem;
-            color: #0ff;
+        .ui-text {
+            font-size: 1.5rem;
             font-weight: bold;
+            letter-spacing: 2px;
             text-shadow: 0 0 10px #0ff;
+            color: #0ff;
         }
 
-        #joystickZone {
+        #joystick-area {
             position: absolute;
-            bottom: 10%;
-            left: 10%;
-            width: 150px;
-            height: 150px;
+            bottom: 30px;
+            left: 30px;
+            width: 140px;
+            height: 140px;
             border-radius: 50%;
-            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 255, 0.2);
             z-index: 5;
+            display: none;
             touch-action: none;
         }
 
-        #joystick {
-            position: absolute;
-            inset: 0;
-            border: 2px solid rgba(0, 255, 255, 0.3);
-            border-radius: 50%;
-        }
-
-        #joystickKnob {
+        #joystick-knob {
             position: absolute;
             top: 50%;
             left: 50%;
             width: 60px;
             height: 60px;
-            margin: -30px 0 0 -30px;
-            background: rgba(0, 255, 255, 0.5);
             border-radius: 50%;
+            background: rgba(0, 255, 255, 0.4);
+            transform: translate(-50%, -50%);
             box-shadow: 0 0 15px #0ff;
             pointer-events: none;
         }
 
-        @media (hover: none) and (pointer: coarse) {
-            #joystickZone {
+        @media (max-width: 800px) {
+            #joystick-area {
                 display: block;
             }
         }
@@ -146,133 +152,151 @@
 </head>
 
 <body>
-    <div id="gameContainer">
+    <div id="game-container">
         <canvas id="gameCanvas" width="1000" height="800"></canvas>
-        <div id="uiLayer">
-            <div id="pulses">Pulses: 15</div>
+
+        <div id="ui-layer">
+            <div class="ui-text">PULSY: <span id="pulse-count">15</span></div>
         </div>
 
-        <div id="joystickZone">
-            <div id="joystick">
-                <div id="joystickKnob"></div>
-            </div>
+        <div id="joystick-area">
+            <div id="joystick-knob"></div>
         </div>
 
-        <div class="overlay" id="mainMenu">
-            <h1>SONAR MAZE</h1>
-            <p>Find the green exit. Avoid red entities.<br>You have 15 sonar pulses to reveal invisible walls.<br>Move:
-                WASD/Arrows or Joystick.<br>Sonar: Space or Tap.</p>
-            <button id="btnStart">START GAME</button>
+        <div id="menu-main" class="overlay active">
+            <h1>Sonar Maze</h1>
+            <p
+                style="max-width:600px;text-align:center;margin-bottom:40px;line-height:1.6;font-size:1.1rem;color:#ccc;">
+                Probuďte se ve tmě. Vaším úkolem je najít zelený východ. Zdi bludiště jsou neviditelné, použijte sonar k
+                odhalení cesty. Vyhněte se červeným strážcům! Sonar je na chvíli ochromí. Máte jen 15 pulzů.<br><br>
+                <strong>Ovládání:</strong> WASD / Šipky nebo Joystick<br>
+                <strong>Sonar:</strong> Mezerník nebo Tap na obrazovku
+            </p>
+            <button class="btn" id="btn-start">Start</button>
         </div>
 
-        <div class="overlay hidden" id="pauseMenu">
-            <h1>PAUSED</h1>
-            <button id="btnResume">RESUME</button>
+        <div id="menu-pause" class="overlay">
+            <h1>Pauza</h1>
+            <button class="btn" id="btn-resume">Pokračovat</button>
         </div>
 
-        <div class="overlay hidden" id="gameOverMenu">
-            <h1 id="endTitle">GAME OVER</h1>
-            <p id="endDesc">You were caught in the darkness.</p>
-            <button id="btnRestart">PLAY AGAIN</button>
+        <div id="menu-gameover" class="overlay">
+            <h1 style="color:#ff3333;text-shadow:0 0 20px #ff0000;border-color:#ff3333;">Game Over</h1>
+            <p id="gameover-reason" style="margin-bottom:30px;font-size:1.2rem;color:#ccc;"></p>
+            <button class="btn" id="btn-restart"
+                style="border-color:#ff3333;box-shadow:0 0 15px rgba(255,0,0,0.4);color:#ff3333;">Hrát znovu</button>
+        </div>
+
+        <div id="menu-victory" class="overlay">
+            <h1 style="color:#33ff33;text-shadow:0 0 20px #00ff00;">Vítězství!</h1>
+            <p style="margin-bottom:30px;font-size:1.2rem;color:#ccc;">Úspěšně jste unikli z temnoty.</p>
+            <button class="btn" id="btn-restart-vic"
+                style="border-color:#33ff33;box-shadow:0 0 15px rgba(0,255,0,0.4);color:#33ff33;">Hrát znovu</button>
         </div>
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const COLS = 25, ROWS = 20, CELL = 40;
+        const ctx = canvas.getContext('2d', { alpha: false });
+        let audioCtx = null;
 
-        let gameState = 'MENU';
-        let lastTime = 0, time = 0;
-        let player = {}, exit = {}, enemies = [], waves = [], segments = [], cellSegments = [];
-        let pulses = 15, lastPulseTime = 0, pulseTimeout = null;
-        let keys = {};
-        let joy = { active: false, nx: 0, ny: 0, id: null };
+        let player, pulses, enemies, exit, physicsWalls, segments;
+        let gameState = 'menu';
+        let pulseCount = 15;
+        let lastTime = 0;
+        let reqId = null;
+        let lastPulseTime = 0;
+        let pulseTimeout = null;
 
-        const Audio = {
-            ctx: null,
-            init() {
-                if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                if (this.ctx.state === 'suspended') this.ctx.resume();
-            },
-            playPing() {
-                if (!this.ctx) return;
-                let t = this.ctx.currentTime;
-                let osc = this.ctx.createOscillator();
-                let gain = this.ctx.createGain();
+        const cols = 25;
+        const rows = 20;
+        const cs = 40;
+
+        const keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+        let joyActive = false;
+        let joyID = null;
+        let joyVec = { x: 0, y: 0 };
+        const joyArea = document.getElementById('joystick-area');
+        const joyKnob = document.getElementById('joystick-knob');
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playPing() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1400, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(180, audioCtx.currentTime + 0.9);
+            gain.gain.setValueAtTime(1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.9);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.9);
+        }
+
+        function playDeath() {
+            if (!audioCtx) return;
+            const osc1 = audioCtx.createOscillator();
+            const osc2 = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc1.type = 'square'; osc2.type = 'sawtooth';
+            osc1.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc1.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.6);
+            osc2.frequency.setValueAtTime(90, audioCtx.currentTime);
+            osc2.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.6);
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+            osc1.connect(gain); osc2.connect(gain); gain.connect(audioCtx.destination);
+            osc1.start(); osc2.start();
+            osc1.stop(audioCtx.currentTime + 0.6); osc2.stop(audioCtx.currentTime + 0.6);
+        }
+
+        function playVictory() {
+            if (!audioCtx) return;
+            const freqs = [523.25, 659.25, 783.99, 1046.50];
+            freqs.forEach((f, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(1400, t);
-                osc.frequency.exponentialRampToValueAtTime(180, t + 0.9);
-                gain.gain.setValueAtTime(1, t);
-                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.9);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(t); osc.stop(t + 0.9);
-            },
-            playDeath() {
-                if (!this.ctx) return;
-                let t = this.ctx.currentTime;
-                let osc1 = this.ctx.createOscillator();
-                let osc2 = this.ctx.createOscillator();
-                let gain = this.ctx.createGain();
-                osc1.type = 'square'; osc2.type = 'sawtooth';
-                osc1.frequency.setValueAtTime(150, t);
-                osc1.frequency.exponentialRampToValueAtTime(30, t + 0.6);
-                osc2.frequency.setValueAtTime(90, t);
-                osc2.frequency.exponentialRampToValueAtTime(30, t + 0.6);
-                gain.gain.setValueAtTime(1, t);
-                gain.gain.linearRampToValueAtTime(0, t + 0.6);
-                osc1.connect(gain); osc2.connect(gain); gain.connect(this.ctx.destination);
-                osc1.start(t); osc2.start(t); osc1.stop(t + 0.6); osc2.stop(t + 0.6);
-            },
-            playVictory() {
-                if (!this.ctx) return;
-                let freqs = [523.25, 659.25, 783.99, 1046.50];
-                freqs.forEach((f, i) => {
-                    let t = this.ctx.currentTime + i * 0.15;
-                    let osc = this.ctx.createOscillator();
-                    let gain = this.ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.value = f;
-                    gain.gain.setValueAtTime(0, t);
-                    gain.gain.linearRampToValueAtTime(0.3, t + 0.05);
-                    gain.gain.linearRampToValueAtTime(0, t + 0.3);
-                    osc.connect(gain); gain.connect(this.ctx.destination);
-                    osc.start(t); osc.stop(t + 0.3);
-                });
-            }
-        };
+                osc.frequency.value = f;
+                const t = audioCtx.currentTime + i * 0.15;
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.5, t + 0.05);
+                gain.gain.linearRampToValueAtTime(0, t + 0.3);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(t); osc.stop(t + 0.3);
+            });
+        }
 
         function generateMaze() {
-            let grid = [];
-            for (let y = 0; y < ROWS; y++) {
-                for (let x = 0; x < COLS; x++) {
-                    grid.push({ x, y, walls: [true, true, true, true], visited: false });
+            const grid = [];
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    grid.push({ x, y, top: true, right: true, bottom: true, left: true, visited: false });
                 }
             }
+            const idx = (x, y) => (x < 0 || x >= cols || y < 0 || y >= rows) ? -1 : y * cols + x;
 
-            function idx(x, y) { return (x < 0 || x >= COLS || y < 0 || y >= ROWS) ? -1 : y * COLS + x; }
-
-            let stack = [], curr = grid[0];
+            const stack = [];
+            let curr = grid[0];
             curr.visited = true;
-
             while (true) {
-                let n = [];
-                let top = grid[idx(curr.x, curr.y - 1)];
-                let right = grid[idx(curr.x + 1, curr.y)];
-                let bottom = grid[idx(curr.x, curr.y + 1)];
-                let left = grid[idx(curr.x - 1, curr.y)];
+                let unv = [];
+                let n = grid[idx(curr.x, curr.y - 1)]; if (n && !n.visited) unv.push({ c: n, d: 'top' });
+                let e = grid[idx(curr.x + 1, curr.y)]; if (e && !e.visited) unv.push({ c: e, d: 'right' });
+                let s = grid[idx(curr.x, curr.y + 1)]; if (s && !s.visited) unv.push({ c: s, d: 'bottom' });
+                let w = grid[idx(curr.x - 1, curr.y)]; if (w && !w.visited) unv.push({ c: w, d: 'left' });
 
-                if (top && !top.visited) n.push({ c: top, dir: 0 });
-                if (right && !right.visited) n.push({ c: right, dir: 1 });
-                if (bottom && !bottom.visited) n.push({ c: bottom, dir: 2 });
-                if (left && !left.visited) n.push({ c: left, dir: 3 });
-
-                if (n.length > 0) {
-                    let next = n[Math.floor(Math.random() * n.length)];
+                if (unv.length > 0) {
+                    let next = unv[Math.floor(Math.random() * unv.length)];
                     stack.push(curr);
-                    curr.walls[next.dir] = false;
-                    next.c.walls[(next.dir + 2) % 4] = false;
+                    if (next.d === 'top') { curr.top = false; next.c.bottom = false; }
+                    if (next.d === 'right') { curr.right = false; next.c.left = false; }
+                    if (next.d === 'bottom') { curr.bottom = false; next.c.top = false; }
+                    if (next.d === 'left') { curr.left = false; next.c.right = false; }
                     curr = next.c;
                     curr.visited = true;
                 } else if (stack.length > 0) {
@@ -282,385 +306,446 @@
                 }
             }
 
-            for (let i = 0; i < 25; i++) {
-                let x = Math.floor(Math.random() * (COLS - 2)) + 1;
-                let y = Math.floor(Math.random() * (ROWS - 2)) + 1;
-                let c = grid[idx(x, y)];
-                let dir = Math.floor(Math.random() * 4);
-                c.walls[dir] = false;
-                if (dir === 0) grid[idx(x, y - 1)].walls[2] = false;
-                if (dir === 1) grid[idx(x + 1, y)].walls[3] = false;
-                if (dir === 2) grid[idx(x, y + 1)].walls[0] = false;
-                if (dir === 3) grid[idx(x - 1, y)].walls[1] = false;
+            const lines = [];
+            const addLine = (x1, y1, x2, y2) => lines.push({ x1, y1, x2, y2 });
+            for (let c of grid) {
+                let x = c.x * cs, y = c.y * cs;
+                if (c.top) addLine(x, y, x + cs, y);
+                if (c.bottom) addLine(x, y + cs, x + cs, y + cs);
+                if (c.left) addLine(x, y, x, y + cs);
+                if (c.right) addLine(x + cs, y, x + cs, y + cs);
             }
 
-            let tempSegs = [];
-            for (let c of grid) {
-                let x = c.x * CELL, y = c.y * CELL;
-                if (c.walls[0]) tempSegs.push({ a: { x, y }, b: { x: x + CELL, y } });
-                if (c.walls[1]) tempSegs.push({ a: { x: x + CELL, y }, b: { x: x + CELL, y: y + CELL } });
-                if (c.walls[2]) tempSegs.push({ a: { x, y: y + CELL }, b: { x: x + CELL, y: y + CELL } });
-                if (c.walls[3]) tempSegs.push({ a: { x, y }, b: { x, y: y + CELL } });
+            physicsWalls = [];
+            const seen = new Set();
+            for (let l of lines) {
+                let sKey = `${Math.min(l.x1, l.x2)},${Math.min(l.y1, l.y2)},${Math.max(l.x1, l.x2)},${Math.max(l.y1, l.y2)}`;
+                if (!seen.has(sKey)) {
+                    seen.add(sKey);
+                    physicsWalls.push(l);
+                }
             }
 
             segments = [];
-            for (let s of tempSegs) {
-                let dup = false;
-                for (let u of segments) {
-                    if ((s.a.x === u.a.x && s.a.y === u.a.y && s.b.x === u.b.x && s.b.y === u.b.y) ||
-                        (s.a.x === u.b.x && s.a.y === u.b.y && s.b.x === u.a.x && s.b.y === u.a.y)) {
-                        dup = true; break;
-                    }
-                }
-                if (!dup) segments.push({ a: s.a, b: s.b, glow: 0 });
-            }
-
-            cellSegments = new Array(COLS * ROWS).fill(null).map(() => []);
-            for (let seg of segments) {
-                let minX = Math.floor(Math.min(seg.a.x, seg.b.x) / CELL);
-                let maxX = Math.floor(Math.max(seg.a.x, seg.b.x) / CELL);
-                let minY = Math.floor(Math.min(seg.a.y, seg.b.y) / CELL);
-                let maxY = Math.floor(Math.max(seg.a.y, seg.b.y) / CELL);
-                for (let y = minY - 1; y <= maxY + 1; y++) {
-                    for (let x = minX - 1; x <= maxX + 1; x++) {
-                        let id = idx(x, y);
-                        if (id !== -1) cellSegments[id].push(seg);
-                    }
+            for (let l of physicsWalls) {
+                let len = Math.hypot(l.x2 - l.x1, l.y2 - l.y1);
+                let n = Math.ceil(len / 10);
+                for (let i = 0; i < n; i++) {
+                    let t1 = i / n, t2 = (i + 1) / n;
+                    let sx1 = l.x1 + t1 * (l.x2 - l.x1), sy1 = l.y1 + t1 * (l.y2 - l.y1);
+                    let sx2 = l.x1 + t2 * (l.x2 - l.x1), sy2 = l.y1 + t2 * (l.y2 - l.y1);
+                    segments.push({
+                        x1: sx1, y1: sy1, x2: sx2, y2: sy2,
+                        cx: (sx1 + sx2) / 2, cy: (sy1 + sy2) / 2,
+                        intensity: 0
+                    });
                 }
             }
-        }
-
-        function initGame() {
-            generateMaze();
-            player = { x: CELL / 2, y: CELL / 2, vx: 0, vy: 0, lastVx: 1, lastVy: 0, radius: 12 };
-            exit = { x: (COLS - 0.5) * CELL, y: (ROWS - 0.5) * CELL };
 
             enemies = [];
-            for (let i = 0; i < 3; i++) {
-                let ex, ey;
-                do {
-                    ex = Math.floor(Math.random() * (COLS / 2) + COLS / 2) * CELL + CELL / 2;
-                    ey = Math.floor(Math.random() * ROWS) * CELL + CELL / 2;
-                } while (Math.hypot(ex - player.x, ey - player.y) < 250 || Math.hypot(ex - exit.x, ey - exit.y) < 150);
-                let a = Math.random() * Math.PI * 2;
-                enemies.push({ x: ex, y: ey, vx: Math.cos(a) * 150, vy: Math.sin(a) * 150, radius: 12 });
-            }
-
-            pulses = 15;
-            document.getElementById('pulses').innerText = `Pulses: ${pulses}`;
-            waves = [];
-            if (pulseTimeout) clearTimeout(pulseTimeout);
-
-            gameState = 'PLAYING';
-            document.querySelectorAll('.overlay').forEach(e => e.classList.add('hidden'));
-            keys = {};
-            lastTime = performance.now();
-        }
-
-        function gameOver(win, msg = "You were caught in the darkness.") {
-            gameState = 'GAMEOVER';
-            if (pulseTimeout) clearTimeout(pulseTimeout);
-            let title = document.getElementById('endTitle');
-            let desc = document.getElementById('endDesc');
-            document.getElementById('gameOverMenu').classList.remove('hidden');
-            if (win) {
-                title.innerText = "VICTORY";
-                title.style.color = "#0f0";
-                title.style.textShadow = "0 0 15px #0f0";
-                desc.innerText = "You have escaped the maze!";
-                Audio.playVictory();
-            } else {
-                title.innerText = "GAME OVER";
-                title.style.color = "#f00";
-                title.style.textShadow = "0 0 15px #f00";
-                desc.innerText = msg;
-                Audio.playDeath();
-            }
-        }
-
-        function fireSonar() {
-            let now = performance.now();
-            if (now - lastPulseTime < 1000 || pulses <= 0) return;
-            lastPulseTime = now;
-            pulses--;
-            document.getElementById('pulses').innerText = `Pulses: ${pulses}`;
-            Audio.playPing();
-            waves.push({ x: player.x, y: player.y, radius: 0, speed: 700 });
-
-            if (pulses === 0) {
-                pulseTimeout = setTimeout(() => {
-                    if (gameState === 'PLAYING') gameOver(false, "Out of sonar pulses!");
-                }, 4000);
-            }
-        }
-
-        function closestPoint(p, a, b) {
-            let ab = { x: b.x - a.x, y: b.y - a.y };
-            let t = ((p.x - a.x) * ab.x + (p.y - a.y) * ab.y) / (ab.x * ab.x + ab.y * ab.y);
-            t = Math.max(0, Math.min(1, t));
-            return { x: a.x + t * ab.x, y: a.y + t * ab.y };
-        }
-
-        function resolveCollisions(ent, isEnemy) {
-            let cx = Math.floor(ent.x / CELL);
-            let cy = Math.floor(ent.y / CELL);
-            let id = cy * COLS + cx;
-            let checkWalls = cellSegments[id] || [];
-
-            for (let w of checkWalls) {
-                let cl = closestPoint(ent, w.a, w.b);
-                let dx = ent.x - cl.x;
-                let dy = ent.y - cl.y;
-                let dist = Math.sqrt(dx * dx + dy * dy);
-
-                if (dist < ent.radius) {
-                    let nx, ny;
-                    if (dist < 0.001) {
-                        let abx = w.b.x - w.a.x;
-                        let aby = w.b.y - w.a.y;
-                        nx = -aby; ny = abx;
-                        let len = Math.hypot(nx, ny);
-                        nx /= len; ny /= len;
-                    } else {
-                        nx = dx / dist; ny = dy / dist;
-                    }
-
-                    let overlap = ent.radius - dist;
-                    ent.x += nx * (overlap + 0.01);
-                    ent.y += ny * (overlap + 0.01);
-
-                    if (isEnemy) {
-                        let dot = ent.vx * nx + ent.vy * ny;
-                        ent.vx = ent.vx - 2 * dot * nx;
-                        ent.vy = ent.vy - 2 * dot * ny;
-                        ent.vx += (Math.random() - 0.5) * 20;
-                        ent.vy += (Math.random() - 0.5) * 20;
-                        let speed = Math.hypot(ent.vx, ent.vy);
-                        ent.vx = (ent.vx / Math.max(speed, 1)) * 150;
-                        ent.vy = (ent.vy / Math.max(speed, 1)) * 150;
-                    } else {
-                        let dot = ent.vx * nx + ent.vy * ny;
-                        if (dot < 0) {
-                            ent.vx -= dot * nx;
-                            ent.vy -= dot * ny;
-                        }
-                    }
+            while (enemies.length < 3) {
+                let ex = Math.floor(Math.random() * cols) * cs + cs / 2;
+                let ey = Math.floor(Math.random() * rows) * cs + cs / 2;
+                let dPlayer = Math.hypot(ex - 20, ey - 20);
+                let dExit = Math.hypot(ex - ((cols - 1) * cs + cs / 2), ey - ((rows - 1) * cs + cs / 2));
+                if (dPlayer > 300 && dExit > 150) {
+                    let a = Math.random() * Math.PI * 2;
+                    enemies.push({
+                        x: ex, y: ey, r: 10,
+                        vx: Math.cos(a) * 100, vy: Math.sin(a) * 100,
+                        frozen: 0, angle: a
+                    });
                 }
             }
-            ent.x = Math.max(ent.radius, Math.min(COLS * CELL - ent.radius, ent.x));
-            ent.y = Math.max(ent.radius, Math.min(ROWS * CELL - ent.radius, ent.y));
+            exit = { x: (cols - 1) * cs + cs / 2, y: (rows - 1) * cs + cs / 2, r: 12, pulse: 0 };
         }
 
-        function updatePhysics(dt) {
+        function resetGame() {
+            if (pulseTimeout) {
+                clearTimeout(pulseTimeout);
+                pulseTimeout = null;
+            }
+            generateMaze();
+            player = { x: 20, y: 20, r: 8, vx: 0, vy: 0, speed: 180, walkCycle: 0, angle: 0 };
+            pulses = [];
+            pulseCount = 15;
+            lastPulseTime = 0;
+            document.getElementById('pulse-count').innerText = pulseCount;
+            joyVec = { x: 0, y: 0 };
+            joyActive = false;
+            joyID = null;
+            joyKnob.style.transform = `translate(-50%, -50%)`;
+        }
+
+        function resolveCollision(circle, line, bounce = false) {
+            const A = { x: line.x1, y: line.y1 };
+            const B = { x: line.x2, y: line.y2 };
+            const C = { x: circle.x, y: circle.y };
+            const r = circle.r;
+
+            const AB = { x: B.x - A.x, y: B.y - A.y };
+            const AC = { x: C.x - A.x, y: C.y - A.y };
+
+            const abSq = AB.x * AB.x + AB.y * AB.y;
+            let t = (AC.x * AB.x + AC.y * AB.y) / abSq;
+            t = Math.max(0, Math.min(1, t));
+
+            const P = { x: A.x + t * AB.x, y: A.y + t * AB.y };
+            const PC = { x: C.x - P.x, y: C.y - P.y };
+            const distSq = PC.x * PC.x + PC.y * PC.y;
+
+            if (distSq < r * r) {
+                let dist = Math.sqrt(distSq);
+                let nx, ny;
+                if (dist === 0) {
+                    nx = -AB.y; ny = AB.x;
+                    const nLen = Math.hypot(nx, ny);
+                    nx /= nLen; ny /= nLen;
+                } else {
+                    nx = PC.x / dist; ny = PC.y / dist;
+                }
+
+                if (bounce) {
+                    const dot = circle.vx * nx + circle.vy * ny;
+                    if (dot < 0) {
+                        circle.vx = circle.vx - 2 * dot * nx;
+                        circle.vy = circle.vy - 2 * dot * ny;
+                    }
+                }
+
+                const overlap = r - dist;
+                const eps = 0.05;
+                circle.x += nx * (overlap + eps);
+                circle.y += ny * (overlap + eps);
+            }
+        }
+
+        function emitPulse() {
+            let now = performance.now();
+            if (now - lastPulseTime < 1000 || pulseCount <= 0) return;
+
+            pulseCount--;
+            document.getElementById('pulse-count').innerText = pulseCount;
+            lastPulseTime = now;
+
+            pulses.push({
+                x: player.x, y: player.y,
+                radius: 0, prevRadius: 0,
+                maxRadius: 1200, speed: 800
+            });
+            playPing();
+
+            if (pulseCount === 0) {
+                pulseTimeout = setTimeout(() => {
+                    if (gameState === 'playing') gameOver("Došly sonarové pulzy!");
+                }, 3000);
+            }
+        }
+
+        function update(dt) {
+            for (let s of segments) {
+                if (s.intensity > 0) {
+                    s.intensity -= dt / 3.0;
+                    if (s.intensity < 0) s.intensity = 0;
+                }
+            }
+
+            for (let i = pulses.length - 1; i >= 0; i--) {
+                let p = pulses[i];
+                p.prevRadius = p.radius;
+                p.radius += p.speed * dt;
+
+                for (let s of segments) {
+                    let dist = Math.hypot(s.cx - p.x, s.cy - p.y);
+                    if (dist >= p.prevRadius && dist < p.radius) s.intensity = 1.0;
+                }
+
+                for (let en of enemies) {
+                    let dist = Math.hypot(en.x - p.x, en.y - p.y);
+                    if (dist >= p.prevRadius && dist < p.radius) en.frozen = 2.0;
+                }
+
+                if (p.radius >= p.maxRadius) pulses.splice(i, 1);
+            }
+
+            exit.pulse += dt * 5;
+
+            let ix = 0, iy = 0;
+            if (keys.w || keys.ArrowUp) iy -= 1;
+            if (keys.s || keys.ArrowDown) iy += 1;
+            if (keys.a || keys.ArrowLeft) ix -= 1;
+            if (keys.d || keys.ArrowRight) ix += 1;
+
+            if (ix !== 0 || iy !== 0) {
+                let len = Math.hypot(ix, iy);
+                ix /= len; iy /= len;
+            } else if (joyVec.x !== 0 || joyVec.y !== 0) {
+                ix = joyVec.x; iy = joyVec.y;
+            }
+
+            player.vx = ix * player.speed;
+            player.vy = iy * player.speed;
+
+            if (player.vx !== 0 || player.vy !== 0) {
+                player.angle = Math.atan2(player.vy, player.vx);
+                player.walkCycle += dt * 10;
+            } else {
+                player.walkCycle = 0;
+            }
+
             const steps = 4;
             const sDt = dt / steps;
-            for (let s = 0; s < steps; s++) {
+            for (let i = 0; i < steps; i++) {
                 player.x += player.vx * sDt;
                 player.y += player.vy * sDt;
-                resolveCollisions(player, false);
-                for (let e of enemies) {
-                    e.x += e.vx * sDt;
-                    e.y += e.vy * sDt;
-                    resolveCollisions(e, true);
+                for (let wall of physicsWalls) resolveCollision(player, wall, false);
+
+                for (let en of enemies) {
+                    if (en.frozen > 0) continue;
+                    en.x += en.vx * sDt;
+                    en.y += en.vy * sDt;
+                    for (let wall of physicsWalls) resolveCollision(en, wall, true);
                 }
             }
+
+            for (let en of enemies) {
+                if (en.frozen > 0) {
+                    en.frozen -= dt;
+                    if (en.frozen < 0) en.frozen = 0;
+                } else {
+                    en.angle += 3 * dt;
+
+                    let dist = Math.hypot(player.x - en.x, player.y - en.y);
+                    if (dist < player.r + en.r - 2) gameOver("Zabit strážcem bludiště!");
+                }
+            }
+
+            let distExit = Math.hypot(player.x - exit.x, player.y - exit.y);
+            if (distExit < player.r + exit.r) victory();
         }
 
-        function render() {
+        function draw() {
             ctx.globalCompositeOperation = 'source-over';
-            ctx.fillStyle = '#000';
+            ctx.fillStyle = '#050505';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             ctx.globalCompositeOperation = 'lighter';
+            const buckets = Array.from({ length: 10 }, () => []);
+            for (let s of segments) {
+                if (s.intensity > 0.05) {
+                    let b = Math.min(9, Math.floor(s.intensity * 10));
+                    buckets[b].push(s);
+                }
+            }
+            ctx.lineWidth = 3;
             ctx.lineCap = 'round';
-            for (let seg of segments) {
-                if (seg.glow > 0.01) {
-                    ctx.strokeStyle = `rgba(0, 255, 255, ${seg.glow})`;
-                    ctx.lineWidth = 4;
-                    ctx.shadowBlur = 15 * seg.glow;
-                    ctx.shadowColor = '#0ff';
-                    ctx.beginPath();
-                    ctx.moveTo(seg.a.x, seg.a.y);
-                    ctx.lineTo(seg.b.x, seg.b.y);
-                    ctx.stroke();
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#0ff';
+            for (let i = 0; i < 10; i++) {
+                if (buckets[i].length === 0) continue;
+                ctx.strokeStyle = `rgba(0, 255, 255, ${(i + 1) / 10})`;
+                ctx.beginPath();
+                for (let s of buckets[i]) {
+                    ctx.moveTo(s.x1, s.y1);
+                    ctx.lineTo(s.x2, s.y2);
                 }
-            }
-            ctx.shadowBlur = 0;
-
-            ctx.lineWidth = 2;
-            for (let w of waves) {
-                let a = Math.max(0, 1 - w.radius / 1000);
-                if (a > 0.01) {
-                    ctx.strokeStyle = `rgba(0, 255, 255, ${a})`;
-                    ctx.beginPath();
-                    ctx.arc(w.x, w.y, w.radius, 0, Math.PI * 2);
-                    ctx.stroke();
-                }
+                ctx.stroke();
             }
 
-            let rExit = 20 + Math.sin(time * 5) * 5;
+            for (let p of pulses) {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                let alpha = Math.max(0, 1 - (p.radius / p.maxRadius));
+                ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
+                ctx.lineWidth = 3;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#0ff';
+                ctx.stroke();
+            }
+
+            let exitScale = 1 + Math.sin(exit.pulse) * 0.1;
             ctx.save();
             ctx.translate(exit.x, exit.y);
-            ctx.beginPath(); ctx.arc(0, 0, rExit, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(0, 255, 0, 0.4)'; ctx.fill();
-            ctx.globalCompositeOperation = 'source-over';
-            ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 2);
-            ctx.fillStyle = '#0f0'; ctx.fill();
+            ctx.scale(exitScale, exitScale);
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#0f0';
+            ctx.fillStyle = 'rgba(0, 255, 0, 0.8)';
+            ctx.beginPath(); ctx.arc(0, 0, exit.r, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.shadowBlur = 0;
+            ctx.beginPath(); ctx.arc(0, 0, exit.r / 2, 0, Math.PI * 2); ctx.fill();
             ctx.restore();
 
-            for (let e of enemies) {
+            for (let en of enemies) {
                 ctx.save();
-                ctx.translate(e.x, e.y);
+                ctx.translate(en.x, en.y);
+                ctx.rotate(en.angle);
+
+                ctx.shadowBlur = en.frozen > 0 ? 5 : 20;
+                ctx.shadowColor = en.frozen > 0 ? '#888' : '#f00';
                 ctx.globalCompositeOperation = 'lighter';
-                ctx.beginPath(); ctx.arc(0, 0, e.radius * 3, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(255, 0, 0, 0.2)'; ctx.fill();
+                ctx.fillStyle = en.frozen > 0 ? 'rgba(136, 136, 136, 0.5)' : 'rgba(255, 0, 0, 0.6)';
+                ctx.beginPath();
+                for (let j = 0; j < 6; j++) {
+                    let a = j * Math.PI / 3;
+                    let r = en.r + (j % 2 === 0 ? 4 : 0);
+                    ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+                }
+                ctx.closePath();
+                ctx.fill();
+
                 ctx.globalCompositeOperation = 'source-over';
-                ctx.rotate(Math.atan2(e.vy, e.vx));
-                ctx.fillStyle = '#f00';
-                ctx.beginPath(); ctx.moveTo(14, 0); ctx.lineTo(-8, 12); ctx.lineTo(-4, 0); ctx.lineTo(-8, -12); ctx.fill();
-                ctx.fillStyle = '#ff0'; ctx.beginPath(); ctx.arc(4, 0, 3, 0, Math.PI * 2); ctx.fill();
-                ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(5, 0, 1.5, 0, Math.PI * 2); ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = en.frozen > 0 ? '#555' : '#a00';
+                ctx.beginPath(); ctx.arc(0, 0, en.r, 0, Math.PI * 2); ctx.fill();
+
+                if (en.frozen > 0) {
+                    ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.moveTo(2, -4); ctx.lineTo(6, 0); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(6, -4); ctx.lineTo(2, 0); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(2, 4); ctx.lineTo(6, 0); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(6, 4); ctx.lineTo(2, 0); ctx.stroke();
+                } else {
+                    ctx.fillStyle = '#ff0';
+                    ctx.beginPath(); ctx.arc(4, -3, 2, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(4, 3, 2, 0, Math.PI * 2); ctx.fill();
+                }
                 ctx.restore();
             }
 
             ctx.save();
             ctx.translate(player.x, player.y);
+            ctx.rotate(player.angle);
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#0ff';
             ctx.globalCompositeOperation = 'lighter';
-            ctx.beginPath(); ctx.arc(0, 0, player.radius * 2.5, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(0, 255, 255, 0.15)'; ctx.fill();
+            ctx.fillStyle = 'rgba(0, 255, 255, 0.5)';
+            ctx.beginPath(); ctx.arc(0, 0, player.r, 0, Math.PI * 2); ctx.fill();
+
             ctx.globalCompositeOperation = 'source-over';
-            let angle = Math.atan2(player.lastVy, player.lastVx);
-            if (Math.hypot(player.vx, player.vy) > 10) {
-                angle = Math.atan2(player.vy, player.vx);
-                player.lastVx = player.vx; player.lastVy = player.vy;
-            }
-            ctx.rotate(angle);
-            let legCycle = (Math.hypot(player.vx, player.vy) > 10) ? Math.sin(time * 15) * 6 : 0;
-            ctx.fillStyle = '#0a8';
-            ctx.beginPath(); ctx.arc(-5 + legCycle, -7, 4, 0, Math.PI * 2); ctx.fill();
-            ctx.beginPath(); ctx.arc(-5 - legCycle, 7, 4, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#0ff'; ctx.beginPath(); ctx.arc(0, 0, player.radius, 0, Math.PI * 2); ctx.fill();
+            ctx.shadowBlur = 0;
+            let legOff = Math.sin(player.walkCycle) * 5;
+            ctx.fillStyle = '#aaa';
+            ctx.fillRect(-player.r + 2, -player.r + 2 + legOff, 6, 8);
+            ctx.fillRect(-player.r + 2, -player.r + 10 - legOff, 6, 8);
+
             ctx.fillStyle = '#fff';
-            ctx.beginPath(); ctx.arc(4, -5, 3, 0, Math.PI * 2); ctx.fill();
-            ctx.beginPath(); ctx.arc(4, 5, 3, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(0, 0, player.r, 0, Math.PI * 2); ctx.fill();
             ctx.fillStyle = '#000';
-            ctx.beginPath(); ctx.arc(5, -5, 1.5, 0, Math.PI * 2); ctx.fill();
-            ctx.beginPath(); ctx.arc(5, 5, 1.5, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(3, -3, 2, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(3, 3, 2, 0, Math.PI * 2); ctx.fill();
             ctx.restore();
         }
 
-        function loop(timestamp) {
-            requestAnimationFrame(loop);
-            if (!lastTime) lastTime = timestamp;
-            let dt = Math.min((timestamp - lastTime) / 1000, 0.1);
-            lastTime = timestamp;
+        function loop(time) {
+            if (!lastTime) lastTime = time;
+            let dt = (time - lastTime) / 1000;
+            lastTime = time;
+            if (dt > 0.1) dt = 0.1;
 
-            if (gameState !== 'PLAYING') return;
-            time += dt;
-
-            let ax = 0, ay = 0;
-            if (keys['w'] || keys['ArrowUp']) ay -= 1;
-            if (keys['s'] || keys['ArrowDown']) ay += 1;
-            if (keys['a'] || keys['ArrowLeft']) ax -= 1;
-            if (keys['d'] || keys['ArrowRight']) ax += 1;
-
-            if (joy.active) { ax = joy.nx; ay = joy.ny; }
-
-            let len = Math.hypot(ax, ay);
-            if (len > 0) { ax /= len; ay /= len; }
-
-            let accel = 1500, friction = 8;
-            player.vx += ax * accel * dt; player.vy += ay * accel * dt;
-            player.vx -= player.vx * friction * dt; player.vy -= player.vy * friction * dt;
-
-            updatePhysics(dt);
-
-            for (let i = waves.length - 1; i >= 0; i--) {
-                waves[i].r1 = waves[i].radius;
-                waves[i].radius += waves[i].speed * dt;
-                waves[i].r2 = waves[i].radius;
-                if (waves[i].radius > 1500) waves.splice(i, 1);
+            if (gameState === 'playing') {
+                update(dt);
+                draw();
             }
-
-            for (let seg of segments) {
-                for (let w of waves) {
-                    let cl = closestPoint(w, seg.a, seg.b);
-                    let minDist = Math.hypot(w.x - cl.x, w.y - cl.y);
-                    let maxDist = Math.max(Math.hypot(w.x - seg.a.x, w.y - seg.a.y), Math.hypot(w.x - seg.b.x, w.y - seg.b.y));
-                    if (minDist <= w.r2 && maxDist >= w.r1) seg.glow = 1.0;
-                }
-                seg.glow = Math.max(0, seg.glow - dt / 3);
-            }
-
-            for (let e of enemies) {
-                if (Math.hypot(player.x - e.x, player.y - e.y) < player.radius + e.radius) {
-                    gameOver(false); return;
-                }
-            }
-
-            if (Math.hypot(player.x - exit.x, player.y - exit.y) < player.radius + 15) {
-                gameOver(true); return;
-            }
-
-            render();
+            reqId = requestAnimationFrame(loop);
         }
 
-        window.addEventListener('keydown', e => {
-            if (e.key === ' ') { e.preventDefault(); if (gameState === 'PLAYING') fireSonar(); }
-            keys[e.key] = true;
+        function gameOver(reason) {
+            gameState = 'gameover';
+            playDeath();
+            document.getElementById('gameover-reason').innerText = reason;
+            document.getElementById('menu-gameover').classList.add('active');
+        }
+
+        function victory() {
+            gameState = 'victory';
+            playVictory();
+            document.getElementById('menu-victory').classList.add('active');
+        }
+
+        function togglePause() {
+            if (gameState === 'playing') {
+                gameState = 'pause';
+                document.getElementById('menu-pause').classList.add('active');
+            }
+        }
+
+        document.getElementById('btn-start').addEventListener('click', () => {
+            initAudio();
+            resetGame();
+            gameState = 'playing';
+            document.getElementById('menu-main').classList.remove('active');
+            lastTime = performance.now();
+            if (!reqId) reqId = requestAnimationFrame(loop);
         });
-        window.addEventListener('keyup', e => keys[e.key] = false);
-        window.addEventListener('blur', () => { if (gameState === 'PLAYING') { gameState = 'PAUSED'; document.getElementById('pauseMenu').classList.remove('hidden'); } });
-        window.addEventListener('resize', () => { if (gameState === 'PLAYING') { gameState = 'PAUSED'; document.getElementById('pauseMenu').classList.remove('hidden'); } });
 
-        const jz = document.getElementById('joystickZone'), jk = document.getElementById('joystickKnob');
-        jz.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            if (joy.active) return;
-            let t = e.changedTouches[0];
-            joy.id = t.identifier; joy.active = true; updateJoy(t);
-        }, { passive: false });
-        jz.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            for (let i = 0; i < e.changedTouches.length; i++) if (e.changedTouches[i].identifier === joy.id) updateJoy(e.changedTouches[i]);
-        }, { passive: false });
-        function joyEnd(e) {
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                if (e.changedTouches[i].identifier === joy.id) {
-                    joy.active = false; joy.id = null; joy.nx = 0; joy.ny = 0;
-                    jk.style.transform = `translate(0px, 0px)`;
-                }
-            }
-        }
-        jz.addEventListener('touchend', joyEnd); jz.addEventListener('touchcancel', joyEnd);
-        function updateJoy(t) {
-            let rect = jz.getBoundingClientRect();
-            let dx = t.clientX - (rect.left + rect.width / 2);
-            let dy = t.clientY - (rect.top + rect.height / 2);
-            let dist = Math.hypot(dx, dy), max = rect.width / 2;
-            if (dist > max) { dx = dx / dist * max; dy = dy / dist * max; }
-            jk.style.transform = `translate(${dx}px, ${dy}px)`;
-            joy.nx = dx / max; joy.ny = dy / max;
-        }
-
-        document.addEventListener('touchstart', (e) => {
-            if (gameState !== 'PLAYING') return;
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                if (!e.changedTouches[i].target.closest('#joystickZone')) fireSonar();
-            }
-        }, { passive: false });
-
-        document.getElementById('btnStart').addEventListener('click', () => { Audio.init(); initGame(); });
-        document.getElementById('btnResume').addEventListener('click', () => {
-            Audio.init(); gameState = 'PLAYING';
-            document.getElementById('pauseMenu').classList.add('hidden');
+        document.getElementById('btn-restart').addEventListener('click', () => {
+            document.getElementById('menu-gameover').classList.remove('active');
+            resetGame();
+            gameState = 'playing';
             lastTime = performance.now();
         });
-        document.getElementById('btnRestart').addEventListener('click', () => { Audio.init(); initGame(); });
 
-        requestAnimationFrame(loop);
+        document.getElementById('btn-restart-vic').addEventListener('click', () => {
+            document.getElementById('menu-victory').classList.remove('active');
+            resetGame();
+            gameState = 'playing';
+            lastTime = performance.now();
+        });
+
+        document.getElementById('btn-resume').addEventListener('click', () => {
+            document.getElementById('menu-pause').classList.remove('active');
+            lastTime = performance.now();
+            gameState = 'playing';
+        });
+
+        window.addEventListener('keydown', e => {
+            if (keys.hasOwnProperty(e.key)) keys[e.key] = true;
+            if (e.code === 'Space' && gameState === 'playing') emitPulse();
+            if (e.key === 'Escape' && gameState === 'playing') togglePause();
+        });
+
+        window.addEventListener('keyup', e => {
+            if (keys.hasOwnProperty(e.key)) keys[e.key] = false;
+        });
+
+        window.addEventListener('blur', () => { if (gameState === 'playing') togglePause(); });
+        window.addEventListener('resize', () => { if (gameState === 'playing') togglePause(); });
+
+        document.getElementById('game-container').addEventListener('pointerdown', e => {
+            if (gameState !== 'playing') return;
+            if (e.target === joyArea || joyArea.contains(e.target) || e.target.closest('.btn') || e.target.closest('.overlay')) return;
+            emitPulse();
+        });
+
+        joyArea.addEventListener('pointerdown', e => {
+            joyActive = true; joyID = e.pointerId; updateJoy(e); e.stopPropagation();
+        });
+        window.addEventListener('pointermove', e => {
+            if (joyActive && e.pointerId === joyID) updateJoy(e);
+        });
+        const endJoy = e => {
+            if (joyActive && e.pointerId === joyID) {
+                joyActive = false; joyID = null; joyVec = { x: 0, y: 0 };
+                joyKnob.style.transform = `translate(-50%, -50%)`;
+            }
+        };
+        window.addEventListener('pointerup', endJoy);
+        window.addEventListener('pointercancel', endJoy);
+
+        function updateJoy(e) {
+            let rect = joyArea.getBoundingClientRect();
+            let cx = rect.left + rect.width / 2;
+            let cy = rect.top + rect.height / 2;
+            let dx = e.clientX - cx;
+            let dy = e.clientY - cy;
+            let maxR = rect.width / 2;
+            let dist = Math.hypot(dx, dy);
+            if (dist > maxR) { dx = dx / dist * maxR; dy = dy / dist * maxR; dist = maxR; }
+            joyKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+            joyVec.x = dx / maxR; joyVec.y = dy / maxR;
+        }
     </script>
 </body>
 
 </html>
-```

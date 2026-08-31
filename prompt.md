@@ -3,7 +3,7 @@ Jsi expert na vývoj webových her a algoritmizaci. Tvojí úlohou je vytvořit 
 # Herní mechaniky a logika
 1. Tma a Echolokace: Hrací plocha je po startu zcela černá. Hráč nevidí stěny generovaného bludiště. Hráč není jen obyčejný bod, ale je reprezentován detailnější postavičkou (vykreslenou pomocí složených tvarů přes Canvas API - např. tělo, hlava, oči s pohybujícíma se nohama), která vyzařuje mírnou auru.
 2. Ovládání: Pohyb přes WASD nebo šipky. Na mobilních zařízeních vygeneruj ve spodním rohu responzivní virtuální joystick.
-3. Sonar (Ping): Stiskem mezerníku (nebo tapnutím mimo joystick) vyšle hráč sonarovou vlnu. Vlna je rychle se zvětšující kružnice.
+3. Sonar (Ping) a Taktické omráčení: Stiskem mezerníku (nebo tapnutím mimo joystick) vyšle hráč sonarovou vlnu. Vlna je rychle se zvětšující kružnice. Pokud vlna zasáhne nepřítele, na 2 vteřiny ho zmrazí. To přidává do hry strategii – hráč může obětovat pulz k zastavení nepřítele, který mu blokuje cestu, a bezpečně ho oběhnout. Hráč může přes omráčeného nepřítele i přejít, nepřítel mu nemůže omráčený ublížit.
 4. Odhalení stěn: Zdi jsou bez použití sonaru zcela neviditelné. Pokud hrana vlny protne stěnu bludiště, průsečík se rozzáří neonově tyrkysovou barvou a začne plynule mizet (fade-out v řádu 3 sekund). 
 5. Cíl a Překážky: Úkolem je najít pulzující zelený východ. V mapě se pohybují 3 červené entity vyzařující červenou auru (nepřátelé by měli mít vizuálně zajímavější vzhled poskládaný ze základních tvarů, např. s očima a detaily, ne jen prosté kruhy), které se odráží od stěn. Kontakt s entitou znamená okamžitý Game Over.Po vstupu do východu hra končí vítěznou obrazovkou. 
 6. Omezení: Hráč má k dispozici pouze 15 sonarových pulzů (UI s počítadlem v horní části obrazovky).
