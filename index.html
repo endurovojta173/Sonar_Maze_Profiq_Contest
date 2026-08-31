@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sonar Maze</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+            display: none;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .screen {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(4px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .screen.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        h1 {
+            font-size: 64px;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px #0ff, 0 0 40px #0ff;
+            color: #fff;
+            text-align: center;
+        }
+
+        p {
+            font-size: 20px;
+            margin: 8px 0;
+            color: #d0d0d0;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .accent {
+            color: #0ff;
+            font-weight: bold;
+        }
+
+        .danger {
+            color: #f00;
+            font-weight: bold;
+            text-shadow: 0 0 10px #f00;
+        }
+
+        .success {
+            color: #0f0;
+            font-weight: bold;
+            text-shadow: 0 0 10px #0f0;
+        }
+
+        button {
+            margin-top: 40px;
+            padding: 15px 50px;
+            font-size: 22px;
+            background: transparent;
+            color: #0ff;
+            border: 2px solid #0ff;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 2px;
+            font-family: inherit;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            background: #0ff;
+            color: #000;
+            box-shadow: 0 0 30px #0ff;
+        }
+
+        #joystick-zone {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            width: 140px;
+            height: 140px;
+            background: rgba(0, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 255, 0.2);
+            border-radius: 50%;
+            display: none;
+            pointer-events: auto;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+        }
+
+        #joystick-knob {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 255, 255, 0.4);
+            border-radius: 50%;
+            pointer-events: none;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+            transform: translate(0px, 0px);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 42px;
+            }
+
+            p {
+                font-size: 16px;
+                margin: 5px 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="ui-layer">
+        <div id="hud">PULZY: <span id="pulse-count">15</span></div>
+
+        <div id="menu" class="screen active">
+            <h1>Sonar Maze</h1>
+            <p>Jsi v naprosté tmě. Tvým úkolem je najít <span class="success">zelený východ</span>.</p>
+            <p>Vyhýbej se <span class="danger">červeným entitám</span>.</p>
+            <p>Pohyb: <span class="accent">WASD / Šipky</span> nebo <span class="accent">Joystick</span>.</p>
+            <p>Sonar: <span class="accent">Mezerník</span> nebo <span class="accent">Klepnutí na obrazovku</span>.</p>
+            <p>K dispozici máš pouze <span class="accent">15</span> pulzů!</p>
+            <button id="start-btn">Spustit hru</button>
+        </div>
+
+        <div id="pause" class="screen">
+            <h1>Pauza</h1>
+            <button id="resume-btn">Pokračovat</button>
+        </div>
+
+        <div id="gameover" class="screen">
+            <h1 class="danger" style="text-shadow: 0 0 20px #f00, 0 0 40px #f00;">Game Over</h1>
+            <p id="gameover-reason"></p>
+            <button class="restart-btn"
+                style="color:#f00; border-color:#f00; box-shadow:0 0 15px rgba(255,0,0,0.3);">Hrát znovu</button>
+        </div>
+
+        <div id="victory" class="screen">
+            <h1 class="success" style="text-shadow: 0 0 20px #0f0, 0 0 40px #0f0;">Vítězství!</h1>
+            <p>Úspěšně jsi unikl z bludiště.</p>
+            <button class="restart-btn"
+                style="color:#0f0; border-color:#0f0; box-shadow:0 0 15px rgba(0,255,0,0.3);">Hrát znovu</button>
+        </div>
+
+        <div id="joystick-zone">
+            <div id="joystick-knob"></div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d', { alpha: false });
+
+        const glowCanvas = document.createElement('canvas');
+        const glowCtx = glowCanvas.getContext('2d');
+
+        const STATE_MENU = 0, STATE_PLAYING = 1, STATE_PAUSED = 2, STATE_GAMEOVER = 3, STATE_VICTORY = 4;
+        let state = STATE_MENU;
+
+        let audioCtx = null;
+        let lastTime = 0, loopId = null;
+
+        let cols = 0, rows = 0, cellSize = 0, offsetX = 0, offsetY = 0;
+        let player = null, exit = null;
+        let enemies = [], walls = [], pulses = [];
+        let pulsesLeft = 15, lastPingTime = 0;
+
+        let keys = { up: false, down: false, left: false, right: false };
+        let joyVec = { x: 0, y: 0 }, touchId = null;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playPing() {
+            if (!audioCtx) return;
+            let osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1400, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(180, audioCtx.currentTime + 0.9);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.9);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.9);
+        }
+
+        function playDeath() {
+            if (!audioCtx) return;
+            let osc1 = audioCtx.createOscillator(), osc2 = audioCtx.createOscillator(), gain = audioCtx.createGain();
+            osc1.type = 'square'; osc2.type = 'sawtooth';
+            osc1.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc1.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.6);
+            osc2.frequency.setValueAtTime(90, audioCtx.currentTime);
+            osc2.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.6);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+            osc1.connect(gain); osc2.connect(gain); gain.connect(audioCtx.destination);
+            osc1.start(); osc2.start();
+            osc1.stop(audioCtx.currentTime + 0.6); osc2.stop(audioCtx.currentTime + 0.6);
+        }
+
+        function playVictory() {
+            if (!audioCtx) return;
+            let freqs = [523.25, 659.25, 783.99, 1046.50];
+            let t = audioCtx.currentTime;
+            freqs.forEach((f, i) => {
+                let osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+                osc.type = 'sine'; osc.frequency.value = f;
+                let s = t + i * 0.15;
+                gain.gain.setValueAtTime(0, s);
+                gain.gain.linearRampToValueAtTime(0.2, s + 0.05);
+                gain.gain.linearRampToValueAtTime(0, s + 0.2);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(s); osc.stop(s + 0.2);
+            });
+        }
+
+        function calculateLayout() {
+            let w = window.innerWidth;
+            let h = window.innerHeight;
+            canvas.width = w; canvas.height = h;
+            glowCanvas.width = w; glowCanvas.height = h;
+
+            let minDim = Math.min(w, h);
+            cellSize = minDim / 20;
+
+            if (state === STATE_MENU || state === STATE_GAMEOVER || state === STATE_VICTORY) {
+                cols = Math.floor(w / cellSize);
+                rows = Math.floor(h / cellSize);
+            } else {
+                cellSize = Math.min(w / cols, h / rows);
+            }
+
+            offsetX = (w - cols * cellSize) / 2;
+            offsetY = (h - rows * cellSize) / 2;
+        }
+
+        function generateMaze(c, r) {
+            let grid = Array.from({ length: c }, () => Array.from({ length: r }, () => ({ visited: false, walls: [1, 1, 1, 1] })));
+            let stack = [];
+            let curr = { x: 0, y: 0 };
+            grid[0][0].visited = true;
+            let unvisited = c * r - 1;
+
+            while (unvisited > 0) {
+                let n = [];
+                if (curr.y > 0 && !grid[curr.x][curr.y - 1].visited) n.push({ x: curr.x, y: curr.y - 1, d: 0, o: 2 });
+                if (curr.x < c - 1 && !grid[curr.x + 1][curr.y].visited) n.push({ x: curr.x + 1, y: curr.y, d: 1, o: 3 });
+                if (curr.y < r - 1 && !grid[curr.x][curr.y + 1].visited) n.push({ x: curr.x, y: curr.y + 1, d: 2, o: 0 });
+                if (curr.x > 0 && !grid[curr.x - 1][curr.y].visited) n.push({ x: curr.x - 1, y: curr.y, d: 3, o: 1 });
+
+                if (n.length > 0) {
+                    let next = n[Math.floor(Math.random() * n.length)];
+                    grid[curr.x][curr.y].walls[next.d] = 0;
+                    grid[next.x][next.y].walls[next.o] = 0;
+                    grid[next.x][next.y].visited = true;
+                    stack.push(curr);
+                    curr = { x: next.x, y: next.y };
+                    unvisited--;
+                } else if (stack.length > 0) {
+                    curr = stack.pop();
+                }
+            }
+            return grid;
+        }
+
+        function extractWalls(grid, c, r) {
+            let lines = [];
+            for (let x = 0; x < c; x++) {
+                for (let y = 0; y < r; y++) {
+                    if (grid[x][y].walls[0]) lines.push({ x1: x, y1: y, x2: x + 1, y2: y });
+                    if (grid[x][y].walls[3]) lines.push({ x1: x, y1: y, x2: x, y2: y + 1 });
+                    if (x === c - 1 && grid[x][y].walls[1]) lines.push({ x1: x + 1, y1: y, x2: x + 1, y2: y + 1 });
+                    if (y === r - 1 && grid[x][y].walls[2]) lines.push({ x1: x, y1: y + 1, x2: x + 1, y2: y + 1 });
+                }
+            }
+            return lines;
+        }
+
+        function resetGame() {
+            initAudio();
+            calculateLayout();
+            let grid = generateMaze(cols, rows);
+            walls = extractWalls(grid, cols, rows);
+
+            player = { x: 0.5, y: 0.5, radius: 0.25, vx: 0, vy: 0, speed: 4.5 };
+            exit = { x: cols - 0.5, y: rows - 0.5, radius: 0.4 };
+
+            enemies = [];
+            for (let i = 0; i < 3; i++) {
+                let ex, ey;
+                do {
+                    ex = Math.floor(Math.random() * cols) + 0.5;
+                    ey = Math.floor(Math.random() * rows) + 0.5;
+                } while (Math.hypot(ex - player.x, ey - player.y) < Math.max(cols, rows) / 3);
+                let angle = Math.random() * Math.PI * 2;
+                enemies.push({
+                    id: i, x: ex, y: ey, radius: 0.22, speed: 2.8,
+                    vx: Math.cos(angle) * 2.8, vy: Math.sin(angle) * 2.8
+                });
+            }
+
+            pulses = [];
+            pulsesLeft = 15;
+            document.getElementById('pulse-count').innerText = pulsesLeft;
+            lastPingTime = 0;
+
+            glowCtx.fillStyle = '#000';
+            glowCtx.fillRect(0, 0, glowCanvas.width, glowCanvas.height);
+
+            keys = { up: false, down: false, left: false, right: false };
+            joyVec = { x: 0, y: 0 };
+            if (touchId !== null) resetJoy();
+
+            changeState(STATE_PLAYING);
+            lastTime = performance.now();
+            if (!loopId) loopId = requestAnimationFrame(loop);
+        }
+
+        function changeState(newState) {
+            state = newState;
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('hud').style.display = (state === STATE_PLAYING || state === STATE_PAUSED) ? 'block' : 'none';
+
+            if (state === STATE_MENU) document.getElementById('menu').classList.add('active');
+            if (state === STATE_PAUSED) document.getElementById('pause').classList.add('active');
+            if (state === STATE_GAMEOVER) document.getElementById('gameover').classList.add('active');
+            if (state === STATE_VICTORY) document.getElementById('victory').classList.add('active');
+        }
+
+        function triggerGameOver(reason) {
+            if (state !== STATE_PLAYING) return;
+            playDeath();
+            document.getElementById('gameover-reason').innerText = reason;
+            changeState(STATE_GAMEOVER);
+        }
+
+        function triggerVictory() {
+            if (state !== STATE_PLAYING) return;
+            playVictory();
+            changeState(STATE_VICTORY);
+        }
+
+        function spawnPing() {
+            if (state !== STATE_PLAYING) return;
+            let now = performance.now();
+            if (now - lastPingTime < 1000) return;
+            if (pulsesLeft <= 0) return;
+
+            pulsesLeft--;
+            document.getElementById('pulse-count').innerText = pulsesLeft;
+            lastPingTime = now;
+            playPing();
+
+            let px = offsetX + player.x * cellSize;
+            let py = offsetY + player.y * cellSize;
+            let maxDim = Math.max(canvas.width, canvas.height) * 1.2;
+            pulses.push({ x: px, y: py, radius: 0, speed: maxDim * 0.8, maxRadius: maxDim });
+        }
+
+        function resolveCircleLine(circle, wall) {
+            let dx = wall.x2 - wall.x1;
+            let dy = wall.y2 - wall.y1;
+            let len2 = dx * dx + dy * dy;
+            let t = 0;
+            if (len2 > 0) {
+                t = ((circle.x - wall.x1) * dx + (circle.y - wall.y1) * dy) / len2;
+                t = Math.max(0, Math.min(1, t));
+            }
+            let cx = wall.x1 + t * dx;
+            let cy = wall.y1 + t * dy;
+
+            let dist = Math.hypot(circle.x - cx, circle.y - cy);
+            if (dist < circle.radius) {
+                let nx, ny;
+                if (dist === 0) {
+                    nx = -dy; ny = dx;
+                    let nlen = Math.hypot(nx, ny);
+                    if (nlen > 0) { nx /= nlen; ny /= nlen; } else { nx = 1; ny = 0; }
+                } else {
+                    nx = (circle.x - cx) / dist;
+                    ny = (circle.y - cy) / dist;
+                }
+                let push = circle.radius - dist + 0.005;
+                circle.x += nx * push;
+                circle.y += ny * push;
+                return { nx, ny };
+            }
+            return null;
+        }
+
+        function update(dt) {
+            let dx = 0, dy = 0;
+            if (keys.up) dy -= 1;
+            if (keys.down) dy += 1;
+            if (keys.left) dx -= 1;
+            if (keys.right) dx += 1;
+
+            if (joyVec.x !== 0 || joyVec.y !== 0) {
+                dx = joyVec.x; dy = joyVec.y;
+            }
+
+            let mag = Math.hypot(dx, dy);
+            if (mag > 0) { dx /= mag; dy /= mag; }
+
+            player.vx = dx * player.speed;
+            player.vy = dy * player.speed;
+
+            let steps = 4;
+            let sdt = dt / steps;
+
+            for (let i = 0; i < steps; i++) {
+                player.x += player.vx * sdt;
+                player.y += player.vy * sdt;
+
+                for (let w of walls) resolveCircleLine(player, w);
+
+                for (let e of enemies) {
+                    e.x += e.vx * sdt;
+                    e.y += e.vy * sdt;
+                    for (let w of walls) {
+                        let col = resolveCircleLine(e, w);
+                        if (col) {
+                            let dot = e.vx * col.nx + e.vy * col.ny;
+                            if (dot < 0) {
+                                e.vx -= 2 * dot * col.nx;
+                                e.vy -= 2 * dot * col.ny;
+                            }
+                        }
+                    }
+                }
+            }
+
+            for (let e of enemies) {
+                if (Math.hypot(player.x - e.x, player.y - e.y) < player.radius + e.radius - 0.05) {
+                    triggerGameOver("Dostihla tě červená entita!");
+                    return;
+                }
+            }
+
+            if (Math.hypot(player.x - exit.x, player.y - exit.y) < player.radius + exit.radius) {
+                triggerVictory();
+                return;
+            }
+
+            let activePulses = false;
+            for (let i = pulses.length - 1; i >= 0; i--) {
+                pulses[i].radius += pulses[i].speed * dt;
+                if (pulses[i].radius > pulses[i].maxRadius) {
+                    pulses.splice(i, 1);
+                } else {
+                    activePulses = true;
+                }
+            }
+
+            if (pulsesLeft === 0 && !activePulses) {
+                triggerGameOver("Zůstal jsi ztracen ve tmě bez pulzů!");
+            }
+        }
+
+        function drawPlayer(x, y, r, t, isMoving) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.shadowBlur = r * 1.5; ctx.shadowColor = 'rgba(0,255,255,0.8)';
+            ctx.fillStyle = 'rgba(0,255,255,0.15)';
+            ctx.beginPath(); ctx.arc(x, y, r * 2.5, 0, Math.PI * 2); ctx.fill();
+
+            ctx.shadowBlur = 0;
+            ctx.globalCompositeOperation = 'source-over';
+            let walk = Math.sin(t * 15) * (isMoving ? r * 0.2 : 0);
+            ctx.translate(x, y);
+
+            ctx.fillStyle = '#111';
+            ctx.beginPath(); ctx.ellipse(-r * 0.4, r * 0.6, r * 0.3, r * 0.2 + walk, 0, 0, 7); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(r * 0.4, r * 0.6, r * 0.3, r * 0.2 - walk, 0, 0, 7); ctx.fill();
+
+            ctx.fillStyle = '#0ff';
+            ctx.beginPath(); ctx.arc(0, r * 0.15, r * 0.65, 0, 7); ctx.fill();
+
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.arc(0, -r * 0.25, r * 0.6, 0, 7); ctx.fill();
+
+            ctx.fillStyle = '#000';
+            ctx.beginPath(); ctx.arc(-r * 0.25, -r * 0.3, r * 0.12, 0, 7); ctx.fill();
+            ctx.beginPath(); ctx.arc(r * 0.25, -r * 0.3, r * 0.12, 0, 7); ctx.fill();
+            ctx.restore();
+        }
+
+        function drawEnemy(x, y, r, t, e) {
+            y += Math.sin(t * 6 + e.id) * r * 0.2;
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.shadowBlur = r * 1.5; ctx.shadowColor = 'rgba(255,0,0,0.8)';
+            ctx.fillStyle = 'rgba(255,0,0,0.15)';
+            ctx.beginPath(); ctx.arc(x, y, r * 2.5, 0, Math.PI * 2); ctx.fill();
+
+            ctx.shadowBlur = 0;
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.translate(x, y);
+
+            ctx.fillStyle = '#f00';
+            ctx.beginPath(); ctx.arc(0, 0, r * 0.8, 0, 7); ctx.fill();
+
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.arc(-r * 0.3, -r * 0.15, r * 0.2, 0, 7); ctx.fill();
+            ctx.beginPath(); ctx.arc(r * 0.3, -r * 0.15, r * 0.2, 0, 7); ctx.fill();
+
+            let lookX = (e.vx > 0 ? 1 : -1) * r * 0.08;
+            ctx.fillStyle = '#000';
+            ctx.beginPath(); ctx.arc(-r * 0.3 + lookX, -r * 0.15, r * 0.1, 0, 7); ctx.fill();
+            ctx.beginPath(); ctx.arc(r * 0.3 + lookX, -r * 0.15, r * 0.1, 0, 7); ctx.fill();
+
+            ctx.strokeStyle = '#000'; ctx.lineWidth = Math.max(2, r * 0.1); ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(-r * 0.5, -r * 0.4); ctx.lineTo(-r * 0.1, -r * 0.25); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(r * 0.5, -r * 0.4); ctx.lineTo(r * 0.1, -r * 0.25); ctx.stroke();
+            ctx.restore();
+        }
+
+        function draw(dt) {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (state === STATE_MENU) return;
+
+            if (dt > 0) {
+                glowCtx.globalCompositeOperation = 'source-over';
+                glowCtx.fillStyle = `rgba(0,0,0,${1 - Math.pow(0.01, dt / 3.0)})`;
+                glowCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+                glowCtx.strokeStyle = '#0ff';
+                glowCtx.lineWidth = 4;
+                glowCtx.lineCap = 'round';
+                glowCtx.shadowBlur = 15; glowCtx.shadowColor = '#0ff';
+
+                for (let p of pulses) {
+                    glowCtx.save();
+                    glowCtx.beginPath();
+                    glowCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    glowCtx.arc(p.x, p.y, Math.max(0, p.radius - p.speed * dt - 4), 0, Math.PI * 2, true);
+                    glowCtx.clip();
+
+                    glowCtx.beginPath();
+                    for (let w of walls) {
+                        glowCtx.moveTo(offsetX + w.x1 * cellSize, offsetY + w.y1 * cellSize);
+                        glowCtx.lineTo(offsetX + w.x2 * cellSize, offsetY + w.y2 * cellSize);
+                    }
+                    glowCtx.stroke();
+                    glowCtx.restore();
+                }
+            }
+
+            ctx.globalCompositeOperation = 'screen';
+            ctx.drawImage(glowCanvas, 0, 0);
+
+            ctx.globalCompositeOperation = 'source-over';
+            let exitX = offsetX + exit.x * cellSize;
+            let exitY = offsetY + exit.y * cellSize;
+            let exitR = exit.radius * cellSize;
+            let exitPulse = 0.5 + 0.5 * Math.sin(performance.now() / 150);
+
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.shadowBlur = exitR * 1.5; ctx.shadowColor = '#0f0';
+            ctx.fillStyle = `rgba(0, 255, 0, ${0.4 + 0.6 * exitPulse})`;
+            ctx.beginPath(); ctx.arc(exitX, exitY, exitR, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+
+            let t = performance.now() / 1000;
+            for (let e of enemies) {
+                drawEnemy(offsetX + e.x * cellSize, offsetY + e.y * cellSize, e.radius * cellSize, t, e);
+            }
+
+            let isMoving = player.vx !== 0 || player.vy !== 0;
+            drawPlayer(offsetX + player.x * cellSize, offsetY + player.y * cellSize, player.radius * cellSize, t, isMoving);
+
+            ctx.globalCompositeOperation = 'source-over';
+            for (let p of pulses) {
+                let alpha = Math.max(0, 1 - p.radius / p.maxRadius);
+                ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
+                ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.stroke();
+            }
+        }
+
+        function loop(time) {
+            loopId = requestAnimationFrame(loop);
+            if (!lastTime) lastTime = time;
+            let dt = (time - lastTime) / 1000;
+            lastTime = time;
+            if (dt > 0.1) dt = 0.1;
+
+            if (state === STATE_PLAYING) update(dt);
+            draw(state === STATE_PLAYING ? dt : 0);
+        }
+
+        window.addEventListener('resize', () => {
+            calculateLayout();
+            if (state === STATE_PLAYING) changeState(STATE_PAUSED);
+        });
+        window.addEventListener('blur', () => {
+            if (state === STATE_PLAYING) changeState(STATE_PAUSED);
+        });
+
+        function setKey(e, v) {
+            if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') keys.up = v;
+            if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') keys.down = v;
+            if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') keys.left = v;
+            if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') keys.right = v;
+        }
+        window.addEventListener('keydown', e => {
+            setKey(e, true);
+            if (e.key === ' ') { e.preventDefault(); spawnPing(); }
+            if (e.key === 'Escape') {
+                if (state === STATE_PLAYING) changeState(STATE_PAUSED);
+                else if (state === STATE_PAUSED) { lastTime = performance.now(); changeState(STATE_PLAYING); }
+            }
+        });
+        window.addEventListener('keyup', e => setKey(e, false));
+
+        const joyZone = document.getElementById('joystick-zone');
+        const joyKnob = document.getElementById('joystick-knob');
+        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) joyZone.style.display = 'block';
+
+        function updateJoy(clientX, clientY) {
+            let rect = joyZone.getBoundingClientRect();
+            let bx = rect.left + rect.width / 2;
+            let by = rect.top + rect.height / 2;
+            let dx = clientX - bx, dy = clientY - by;
+            let mag = Math.hypot(dx, dy);
+            let maxDist = rect.width / 2 - 30;
+            if (mag > maxDist) { dx = (dx / mag) * maxDist; dy = (dy / mag) * maxDist; }
+            joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+            joyVec.x = dx / maxDist; joyVec.y = dy / maxDist;
+        }
+
+        function resetJoy() {
+            touchId = null; joyVec.x = 0; joyVec.y = 0;
+            joyKnob.style.transform = `translate(0px, 0px)`;
+        }
+
+        joyZone.addEventListener('touchstart', e => {
+            e.preventDefault();
+            if (touchId === null) {
+                let t = e.changedTouches[0];
+                touchId = t.identifier;
+                updateJoy(t.clientX, t.clientY);
+            }
+        }, { passive: false });
+
+        joyZone.addEventListener('touchmove', e => {
+            e.preventDefault();
+            for (let t of e.changedTouches) {
+                if (t.identifier === touchId) updateJoy(t.clientX, t.clientY);
+            }
+        }, { passive: false });
+
+        joyZone.addEventListener('touchend', e => {
+            e.preventDefault();
+            for (let t of e.changedTouches) if (t.identifier === touchId) resetJoy();
+        }, { passive: false });
+
+        joyZone.addEventListener('touchcancel', e => {
+            e.preventDefault();
+            for (let t of e.changedTouches) if (t.identifier === touchId) resetJoy();
+        }, { passive: false });
+
+        canvas.addEventListener('touchstart', e => {
+            e.preventDefault(); spawnPing();
+        }, { passive: false });
+
+        document.getElementById('start-btn').addEventListener('click', resetGame);
+        document.getElementById('resume-btn').addEventListener('click', () => {
+            lastTime = performance.now(); changeState(STATE_PLAYING);
+        });
+        document.querySelectorAll('.restart-btn').forEach(btn => btn.addEventListener('click', resetGame));
+
+        calculateLayout();
+        loopId = requestAnimationFrame(loop);
+    </script>
+</body>
+
+</html>
