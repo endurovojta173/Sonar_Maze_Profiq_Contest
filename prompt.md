@@ -6,10 +6,20 @@ Jsi expert na vývoj webových her a algoritmizaci. Tvojí úlohou je vytvořit 
 3. Sonar (Ping) a Taktické omráčení: Stiskem mezerníku (nebo tapnutím mimo joystick) vyšle hráč sonarovou vlnu. Vlna je rychle se zvětšující kružnice. Pokud vlna zasáhne nepřítele, na 2 vteřiny ho zmrazí. To přidává do hry strategii – hráč může obětovat pulz k zastavení nepřítele, který mu blokuje cestu, a bezpečně ho oběhnout. Hráč může přes omráčeného nepřítele i přejít, nepřítel mu nemůže omráčený ublížit.
 4. Odhalení stěn: Zdi jsou bez použití sonaru zcela neviditelné. Pokud hrana vlny protne stěnu bludiště, průsečík se rozzáří neonově tyrkysovou barvou a začne plynule mizet (fade-out v řádu 3 sekund). 
 5. Cíl a Překážky: Úkolem je najít pulzující zelený východ. V mapě se pohybují 3 červené entity vyzařující červenou auru (nepřátelé by měli mít vizuálně zajímavější vzhled poskládaný ze základních tvarů, např. s očima a detaily, ne jen prosté kruhy), které se odráží od stěn. Kontakt s entitou znamená okamžitý Game Over.Po vstupu do východu hra končí vítěznou obrazovkou. 
-6. Omezení: Hráč má k dispozici pouze 15 sonarových pulzů (UI s počítadlem v horní části obrazovky).
+6. Omezení: Hráč má k dispozici pouze 5 sonarových pulzů (UI s počítadlem v horní části obrazovky).
+7. Pohyblivé zdi (Shiftující bludiště): Některé zdi bludiště se v pravidelných intervalech plynule otevírají a zavírají (posouvají). Vizuálně to je odhaleno, když sonarová vlna prosvítí zeď, která se právě pohybuje. Hráč musí časovat svůj průchod a dávat pozor, které chodby jsou momentálně průchozí a které ne.
+8. Collectibles (Baterie a Power-Upy): Na mapě je rozmístěno několik objektů, které jsou ve tmě zcela neviditelné a odhalí se (začnou zářit) až ve chvíli, kdy je zasáhne hráčův sonar:
+    - Nabíječka (Baterie): Emoji baterie + Žlutá záře, přidá hráči +3 k počtu sonarových pulzů.
+    - Super-Ping: Emoji radaru +  Fialová záře, jednorázový masivní pulz spuštěný okamžitě po sebrání. Prosvítí obrovskou část mapy, omráčí nepřátele na delší dobu a zdi zůstanou svítit 3x déle (pomalý fade-out).
+9. Vizuální stopa hráče: Z postavičky hráče při pohybu opadává drobná, velmi slabě zářící "stopa" (footprints). Tato stopa plynule mizí po 10 sekundách a poskytuje hráči minimální povědomí o tom, kudy už prošel, i když zrovna nevysílá sonar.
+10. Particlový systém a Vizuální Polish: Hra obsahuje jemné fyzikální částice přes Canvas:
+    - Když sonar narazí do zdi, odmrští z ní pár svítících jiskřiček.
+    - Při sebrání Baterie z ní vystřelí částice a ladně doplují do počítadla v UI.
+    - Při omráčení nepřítele nastane jemný glitch efekt (krátké roztřesení a změna barvy z červené na modrou se zábleskem).
+
 
 # Technické požadavky a Edge Cases
-- Herní smyčka: Hra musí běžet plynule na stabilních 60 FPS s využitím nativní animační smyčky prohlížeče a delta-time. Světelné efekty (záře, neonové linie, aura hráče) musí používat aditivní blending a dynamické rozostření pro realistický glow.
+- Herní smyčka: Hra musí běžet plynule na stabilních 30 FPS s využitím nativní animační smyčky prohlížeče a delta-time. Světelné efekty (záře, neonové linie, aura hráče) musí používat aditivní blending a dynamické rozostření pro realistický glow.
 - Procedurální generování: Na začátku každé hry algoritmicky vygeneruj bludiště (např. pomocí upraveného algoritmu náhodné procházky nebo rekurzivního dělení), aby byla zaručena opakovatelná hratelnost a existence cesty do cíle.
 - Fyzika a Kolize:
     - Implementuj substep/multi-step pohyb – pohyb hráče rozděl v každém snímku na minimálně 4 podkroky (move → resolve → clamp v každém podkroku). Tím se zabrání průchodu zdí (tunneling) i při výpadku FPS.
@@ -21,7 +31,10 @@ Jsi expert na vývoj webových her a algoritmizaci. Tvojí úlohou je vytvořit 
     - Na menších obrazovkách (včetně mobilů) se musí hra chovat responzivně (např. pomocí CSS `max-width: 100%`, `max-height: 100%`, `object-fit: contain` a zachování poměru stran tak, aby se celá herní plocha vešla na obrazovku bez nutnosti scrollingu).
     - Bludiště měj vygenerované pro pevný počet sloupců a řádků (např. 25x20) a pevné logické rozlišení canvasu. Škálování na různá zařízení řeš výhradně pomocí CSS, nikoliv přepočítáváním fyzického rozlišení `canvas.width`/`height` nebo logických souřadnic ve hře. Při změně velikosti okna (nebo při otočení mobilu) hru automaticky pauzni.
 - Prevence zahlcení: Zaveď 1000ms cooldown na sonar, aby hráč nemohl nekonečným spamováním mezerníku přetížit vykreslování v paměti.
-- Zajisti aby hře nepadaly fps při aktivaci sonaru
+- Zajisti aby hře nepadaly fps při aktivaci sonaru:
+    - Optimalizace částic: Omez generování částic tak, aby odletěly ze zdi pouze jednou (když se zeď poprvé rozsvítí), místo toho, aby se generovaly v každém snímku, dokud se vlna dotýká zdi. Nepoužívej `shadowBlur` (záři) u malých částic, protože drasticky snižuje výkon.
+    - Optimalizace vykreslování zdí (Draw Batching): Vykresluj neonové zdi efektivně seskupením segmentů zdí podle jejich úrovně jasu (např. do 10 kbelíků podle alpha hodnoty). Místo volání `beginPath()` a `stroke()` pro každý jednotlivý segment zdi zvlášť nakresli celou vrstvu se stejným jasem naráz (jediným tahem štětce).
+    - Optimalizace matematiky: Při výpočtu vzdáleností mezi sonarovou vlnou a objekty (zdmi, nepřáteli) nahraď výpočetně náročnou funkci `Math.hypot` porovnáváním vzdálenosti na druhou (`dx*dx + dy*dy`).
 - Ujisti se že hra je vždy je dokončitelná, například vygeneruj mapu, kde je vždy cesta k východu. To samé platí i pro červené davy, které by neměly blokovat cestu k východu.
 - Východ je vidět i když na něj hráč nemá aktivovaný sonar.
 
