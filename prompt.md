@@ -5,7 +5,7 @@ Jsi expert na vývoj webových her a algoritmizaci. Tvojí úlohou je vytvořit 
 2. Ovládání: Pohyb přes WASD nebo šipky. Na mobilních zařízeních vygeneruj ve spodním rohu responzivní virtuální joystick.
 3. Sonar (Ping) a Taktické omráčení: Stiskem mezerníku (nebo tapnutím mimo joystick) vyšle hráč sonarovou vlnu. Vlna je rychle se zvětšující kružnice. Pokud vlna zasáhne nepřítele, na 2 vteřiny ho zmrazí. To přidává do hry strategii – hráč může obětovat pulz k zastavení nepřítele, který mu blokuje cestu, a bezpečně ho oběhnout. Hráč může přes omráčeného nepřítele i přejít, nepřítel mu nemůže omráčený ublížit.
 4. Odhalení stěn: Zdi jsou bez použití sonaru zcela neviditelné. Pokud hrana vlny protne stěnu bludiště, průsečík se rozzáří neonově tyrkysovou barvou a začne plynule mizet (fade-out v řádu 3 sekund). 
-5. Cíl a Překážky: Úkolem je najít pulzující zelený východ. V mapě se pohybují 3 červené entity vyzařující červenou auru (nepřátelé by měli mít vizuálně zajímavější vzhled poskládaný ze základních tvarů, např. s očima a detaily, ne jen prosté kruhy), které se odráží od stěn. Kontakt s entitou znamená okamžitý Game Over, pokud je entita omráčená, tak ní hráč může bez problému projít.Po vstupu do východu hra končí vítěznou obrazovkou. 
+5. Cíl a Překážky (Levelování): Úkolem je najít pulzující zelený východ. V mapě se pohybují červené entity vyzařující červenou auru (nepřátelé by měli mít vizuálně zajímavější vzhled poskládaný ze základních tvarů, např. s očima a detaily, ne jen prosté kruhy), které se odráží od stěn. Kontakt s entitou znamená okamžitý Game Over, pokud je entita omráčená, tak ní hráč může bez problému projít. Hra se skládá z 5 postupných levelů. Po vstupu do východu se vygeneruje nová mapa s vyšší obtížností (počet nepřátel): level 1 - 3 enemy, level 2 - 4 enemy, level 3 - 6 enemy, level 4 - 8 enemy a level 5 - 10 enemy. Za každý level dostane +5 sonarů Po dokončení pátého levelu hra končí vítěznou obrazovkou. 
 6. Omezení: Hráč má k dispozici pouze 7 sonarových pulzů (UI s počítadlem v horní části obrazovky).
 7. Pohyblivé zdi (Shiftující bludiště): Některé zdi bludiště se v pravidelných intervalech plynule otevírají a zavírají (posouvají). Vizuálně to je odhaleno, když sonarová vlna prosvítí zeď, která se právě pohybuje. Hráč musí časovat svůj průchod a dávat pozor, které chodby jsou momentálně průchozí a které ne.
 8. Collectibles (Baterie a Power-Upy): Na mapě je rozmístěno několik objektů, které jsou ve tmě zcela neviditelné a odhalí se (začnou zářit) až ve chvíli, kdy je zasáhne hráčův sonar:
@@ -16,6 +16,9 @@ Jsi expert na vývoj webových her a algoritmizaci. Tvojí úlohou je vytvořit 
     - Když sonar narazí do zdi, odmrští z ní pár svítících jiskřiček.
     - Při sebrání Baterie z ní vystřelí částice a ladně doplují do počítadla v UI.
     - Při omráčení nepřítele nastane jemný glitch efekt (krátké roztřesení a změna barvy z červené na modrou se zábleskem).
+11. Progrese mapy a vizuálu mezi levely: Aby nebyl každý level jen o přidání nepřátel, může se měnit i samotné bludiště a jeho vzhled:
+    - Barevná paleta: Každý level by mohl mít jinou barvu sonaru a zdí. Level 1: Tyrkysová (Sci-fi). Level 2: Fialová. Level 3: Toxická zelená. Level 5: Varovná oranžová. Hráč by tak okamžitě vizuálně poznal, jak daleko se dostal.
+12. Skóre a "Speedrun" časovač: Hra by na pozadí měřila čas. Cílem by nebylo jen přežít, ale proběhnout 5 levelů co nejrychleji. Zbylé sonarové pulzy a sebrané baterie by se na konci hry převedly na bonusové skóre. To by hráče motivovalo hrát efektivně a šetřit pulzy.
 
 
 # Technické požadavky a Edge Cases
