@@ -17,9 +17,9 @@ Jsi expert na vývoj webových her a algoritmizaci. Tvojí úlohou je vytvořit 
     - K vyřešené kolizi vždy přidej malý epsilon k push vektoru, aby nedošlo k numerickému oscilování na hraně zdi.
     - Fyzikální výpočty (kolize, pohyb) musí být zcela nezávislé na vizuálních efektech – sonarový ping, partikly ani zvuk nesmí ovlivnit detekci kolizí.
     - Hráč se nesmí zaseknout ve zdi ani po rychlém pohybu do rohu.
-- Responzivita a stabilní velikost bludiště: Herní plátno musí nativně vyplňovat celé okno prohlížeče (`canvas.width = window.innerWidth` atd.). Při změně velikosti okna se hra automaticky pauzne a plátno se přizpůsobí novému rozlišení. 
-    - Aby byla zachována stabilní složitost bludiště napříč zařízeními (aby bludiště nebylo na 4K monitoru nehratelně obrovské a na mobilu triviální), nepoužívej fixní velikost buňky v pixelech.
-    - Místo toho vypočítej velikost buňky (cell size) dynamicky tak, aby se na kratší rozměr obrazovky (šířku nebo výšku) vešlo vždy zhruba 20 buněk. Počet sloupců a řádků se pak dopočítá podle aktuálního poměru stran.
+- Responzivita a stabilní velikost bludiště: Hra nesmí být absolutně fullscreen. Místo toho herní plátno vycentruj na obrazovce s pevně danou maximální šířkou a výškou (např. 1000x800 nebo podobný ideální poměr).
+    - Na menších obrazovkách (včetně mobilů) se musí hra chovat responzivně (např. pomocí CSS `max-width: 100%`, `max-height: 100%`, `object-fit: contain` a zachování poměru stran tak, aby se celá herní plocha vešla na obrazovku bez nutnosti scrollingu).
+    - Bludiště měj vygenerované pro pevný počet sloupců a řádků (např. 25x20) a pevné logické rozlišení canvasu. Škálování na různá zařízení řeš výhradně pomocí CSS, nikoliv přepočítáváním fyzického rozlišení `canvas.width`/`height` nebo logických souřadnic ve hře. Při změně velikosti okna (nebo při otočení mobilu) hru automaticky pauzni.
 - Prevence zahlcení: Zaveď 1000ms cooldown na sonar, aby hráč nemohl nekonečným spamováním mezerníku přetížit vykreslování v paměti.
 - Zajisti aby hře nepadaly fps při aktivaci sonaru
 - Ujisti se že hra je vždy je dokončitelná, například vygeneruj mapu, kde je vždy cesta k východu. To samé platí i pro červené davy, které by neměly blokovat cestu k východu.
