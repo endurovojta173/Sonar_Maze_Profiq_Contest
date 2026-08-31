@@ -5,13 +5,13 @@ Jsi expert na vývoj webových her a algoritmizaci. Tvojí úlohou je vytvořit 
 2. Ovládání: Pohyb přes WASD nebo šipky. Na mobilních zařízeních vygeneruj ve spodním rohu responzivní virtuální joystick.
 3. Sonar (Ping) a Taktické omráčení: Stiskem mezerníku (nebo tapnutím mimo joystick) vyšle hráč sonarovou vlnu. Vlna je rychle se zvětšující kružnice. Pokud vlna zasáhne nepřítele, na 2 vteřiny ho zmrazí. To přidává do hry strategii – hráč může obětovat pulz k zastavení nepřítele, který mu blokuje cestu, a bezpečně ho oběhnout. Hráč může přes omráčeného nepřítele i přejít, nepřítel mu nemůže omráčený ublížit.
 4. Odhalení stěn: Zdi jsou bez použití sonaru zcela neviditelné. Pokud hrana vlny protne stěnu bludiště, průsečík se rozzáří neonově tyrkysovou barvou a začne plynule mizet (fade-out v řádu 3 sekund). 
-5. Cíl a Překážky: Úkolem je najít pulzující zelený východ. V mapě se pohybují 3 červené entity vyzařující červenou auru (nepřátelé by měli mít vizuálně zajímavější vzhled poskládaný ze základních tvarů, např. s očima a detaily, ne jen prosté kruhy), které se odráží od stěn. Kontakt s entitou znamená okamžitý Game Over.Po vstupu do východu hra končí vítěznou obrazovkou. 
-6. Omezení: Hráč má k dispozici pouze 5 sonarových pulzů (UI s počítadlem v horní části obrazovky).
+5. Cíl a Překážky: Úkolem je najít pulzující zelený východ. V mapě se pohybují 3 červené entity vyzařující červenou auru (nepřátelé by měli mít vizuálně zajímavější vzhled poskládaný ze základních tvarů, např. s očima a detaily, ne jen prosté kruhy), které se odráží od stěn. Kontakt s entitou znamená okamžitý Game Over, pokud je entita omráčená, tak ní hráč může bez problému projít.Po vstupu do východu hra končí vítěznou obrazovkou. 
+6. Omezení: Hráč má k dispozici pouze 7 sonarových pulzů (UI s počítadlem v horní části obrazovky).
 7. Pohyblivé zdi (Shiftující bludiště): Některé zdi bludiště se v pravidelných intervalech plynule otevírají a zavírají (posouvají). Vizuálně to je odhaleno, když sonarová vlna prosvítí zeď, která se právě pohybuje. Hráč musí časovat svůj průchod a dávat pozor, které chodby jsou momentálně průchozí a které ne.
 8. Collectibles (Baterie a Power-Upy): Na mapě je rozmístěno několik objektů, které jsou ve tmě zcela neviditelné a odhalí se (začnou zářit) až ve chvíli, kdy je zasáhne hráčův sonar:
     - Nabíječka (Baterie): Emoji baterie + Žlutá záře, přidá hráči +3 k počtu sonarových pulzů.
     - Super-Ping: Emoji radaru +  Fialová záře, jednorázový masivní pulz spuštěný okamžitě po sebrání. Prosvítí obrovskou část mapy, omráčí nepřátele na delší dobu a zdi zůstanou svítit 3x déle (pomalý fade-out).
-9. Vizuální stopa hráče: Z postavičky hráče při pohybu opadává drobná, velmi slabě zářící "stopa" (footprints). Tato stopa plynule mizí po 10 sekundách a poskytuje hráči minimální povědomí o tom, kudy už prošel, i když zrovna nevysílá sonar.
+9. Vizuální stopa hráče: Z postavičky hráče při pohybu opadává drobná, slabě zářící "stopa" (footprints). Tato stopa plynule mizí po 5 sekundách a poskytuje hráči minimální povědomí o tom, kudy už prošel, i když zrovna nevysílá sonar.
 10. Particlový systém a Vizuální Polish: Hra obsahuje jemné fyzikální částice přes Canvas:
     - Když sonar narazí do zdi, odmrští z ní pár svítících jiskřiček.
     - Při sebrání Baterie z ní vystřelí částice a ladně doplují do počítadla v UI.
