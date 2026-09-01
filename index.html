@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -7,43 +7,47 @@
     <title>Sonar Maze</title>
     <style>
         :root {
-            --c-ui: #00ffcc;
-            --c-bg: #050505;
-            --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --neon-cyan: #00FFFF;
+            --neon-purple: #FF00FF;
+            --neon-green: #00FF00;
+            --neon-gold: #FFD700;
+            --neon-orange: #FFA500;
         }
 
-        body,
-        html {
+        body {
             margin: 0;
             padding: 0;
-            background: var(--c-bg);
+            background-color: #050505;
             color: #fff;
-            font-family: var(--font);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
-            width: 100vw;
-            height: 100vh;
+            touch-action: none;
             user-select: none;
             -webkit-user-select: none;
-            touch-action: none;
         }
 
-        #ui-bar {
+        #ui-strip {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 40px;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(10, 10, 10, 0.95);
             border-bottom: 1px solid #333;
             display: flex;
-            justify-content: space-between;
+            justify-content: space-around;
             align-items: center;
-            padding: 0 20px;
-            box-sizing: border-box;
             z-index: 10;
+            box-sizing: border-box;
             font-weight: bold;
-            font-size: 14px;
-            letter-spacing: 1px;
+            font-size: 16px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .ui-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .neon-text {
@@ -51,31 +55,33 @@
         }
 
         #game-container {
-            position: absolute;
+            position: relative;
+            width: 100vw;
+            height: calc(100vh - 40px);
             top: 40px;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            overflow: hidden;
-            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         canvas {
             display: block;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
         }
 
         .overlay {
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             background: rgba(0, 0, 0, 0.85);
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             z-index: 20;
+            backdrop-filter: blur(4px);
         }
 
         .hidden {
@@ -83,127 +89,134 @@
         }
 
         h1 {
+            font-size: 48px;
             margin: 0 0 20px 0;
-            font-size: 3em;
-            color: var(--c-ui);
-            text-shadow: 0 0 15px var(--c-ui);
-            text-align: center;
-        }
-
-        h2 {
-            margin: 0 0 20px 0;
-            font-size: 2em;
+            text-transform: uppercase;
+            letter-spacing: 4px;
         }
 
         p {
-            max-width: 600px;
+            font-size: 18px;
+            margin-bottom: 30px;
             text-align: center;
+            max-width: 600px;
             line-height: 1.5;
-            color: #ccc;
         }
 
         button {
             background: transparent;
             color: #fff;
-            border: 2px solid var(--c-ui);
-            padding: 10px 30px;
-            font-size: 1.2em;
-            font-family: var(--font);
-            cursor: pointer;
-            border-radius: 5px;
+            border: 2px solid #fff;
+            padding: 12px 30px;
+            font-size: 20px;
             text-transform: uppercase;
-            transition: 0.3s;
-            margin-top: 20px;
-            box-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 4px;
+            letter-spacing: 2px;
+            font-family: inherit;
+            font-weight: bold;
         }
 
         button:hover {
-            background: var(--c-ui);
+            background: #fff;
             color: #000;
-            box-shadow: 0 0 20px var(--c-ui);
+            box-shadow: 0 0 15px #fff;
         }
 
-        button.btn-danger {
-            border-color: #ff3366;
-            box-shadow: 0 0 10px rgba(255, 51, 102, 0.3);
+        #btn-giveup {
+            border-color: #ff3333;
+            color: #ff3333;
+            margin-top: 15px;
+            font-size: 16px;
         }
 
-        button.btn-danger:hover {
-            background: #ff3366;
-            color: #000;
-            box-shadow: 0 0 20px #ff3366;
+        #btn-giveup:hover {
+            background: #ff3333;
+            color: #fff;
+            box-shadow: 0 0 15px #ff3333;
         }
 
-        #joystick-area {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            width: 120px;
-            height: 120px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            z-index: 15;
-            display: none;
+        .table-container {
+            margin-bottom: 30px;
+            background: rgba(20, 20, 20, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #444;
         }
 
-        #joystick-knob {
-            position: absolute;
-            top: 35px;
-            left: 35px;
-            width: 50px;
-            height: 50px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-
-        #portrait-warning {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            z-index: 999;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
-
-        #portrait-warning span {
-            font-size: 2em;
-            margin-bottom: 20px;
-        }
-
-        .leaderboard {
-            width: 100%;
-            max-width: 400px;
-            margin: 20px 0;
+        table {
             border-collapse: collapse;
-        }
-
-        .leaderboard th,
-        .leaderboard td {
-            border-bottom: 1px solid #333;
-            padding: 8px;
+            width: 400px;
             text-align: left;
         }
 
-        .leaderboard th {
-            color: var(--c-ui);
+        th,
+        td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #333;
         }
 
-        @media (pointer: coarse) {
-            #joystick-area {
-                display: block;
-            }
+        th {
+            color: #888;
+            font-size: 14px;
+            text-transform: uppercase;
         }
 
-        @media (orientation: portrait) {
+        #joystick-zone {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 50vw;
+            height: 50vh;
+            z-index: 5;
+        }
+
+        #joystick-base {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            display: none;
+            pointer-events: none;
+        }
+
+        #joystick-stick {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: translate(-50%, -50%);
+        }
+
+        #portrait-warning {
+            position: absolute;
+            inset: 0;
+            background: #000;
+            color: #fff;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            font-size: 24px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        @media screen and (orientation: portrait) {
             #portrait-warning {
                 display: flex;
+            }
+
+            #ui-strip,
+            #game-container,
+            .overlay,
+            #joystick-zone {
+                display: none !important;
             }
         }
     </style>
@@ -211,764 +224,827 @@
 
 <body>
 
-    <div id="portrait-warning">
-        <span>🔄</span>
-        <h2>Otočte zařízení</h2>
-        <p>Hra vyžaduje režim na šířku (landscape).</p>
-    </div>
-
-    <div id="ui-bar">
-        <div style="color: var(--c-ui);" class="neon-text">LEVEL <span id="ui-level">1</span>/5</div>
-        <div>TIME: <span id="ui-time">0.0</span>s</div>
-        <div style="color: #ffcc00;" class="neon-text">SCORE: <span id="ui-score">0</span></div>
-        <div style="color: #00ffcc;" class="neon-text">PULSES: <span id="ui-pulses">7</span></div>
+    <div id="ui-strip">
+        <div class="ui-item" style="color: var(--neon-cyan)" id="ui-level">Level: 1</div>
+        <div class="ui-item" style="color: #fff">Time: <span id="ui-time">00:00</span></div>
+        <div class="ui-item" style="color: var(--neon-gold)">Score: <span id="ui-score">0</span></div>
+        <div class="ui-item" style="color: #ff4444">Sonars: <span id="ui-pulses">7</span></div>
+        <div class="ui-item" style="color: #00ff00">Batteries: <span id="ui-batteries">0</span></div>
     </div>
 
     <div id="game-container">
         <canvas id="gameCanvas"></canvas>
-        <div id="joystick-area">
-            <div id="joystick-knob"></div>
+        <div id="joystick-zone"></div>
+        <div id="joystick-base">
+            <div id="joystick-stick"></div>
         </div>
     </div>
 
-    <div id="overlay-menu" class="overlay">
-        <h1>SONAR MAZE</h1>
-        <p>Najdi zelený východ. Tma skrývá bludiště. <br> Mezerník / Tap pro vyslání sonaru, který odhalí zdi a dočasně
-            omráčí červené nepřátele. <br> Zlaté zdi se pohybují. Sbírej baterie (🔋) a super-radary (📡).</p>
+    <div id="menu-overlay" class="overlay">
+        <h1 style="color: var(--neon-cyan); text-shadow: 0 0 15px var(--neon-cyan)">Sonar Maze</h1>
+        <p>You are in complete darkness. Use WASD/Arrows to move.<br>Press SPACE to emit a sonar pulse to reveal walls
+            and stun enemies.<br>Find the pulsating green exit. Avoid red entities.<br>Find batteries 🔋 for more
+            pulses. Find radar 📡 for super-ping.<br>Conserve your pulses for a higher score!</p>
         <button id="btn-start">Start Game</button>
     </div>
 
-    <div id="overlay-pause" class="overlay hidden">
-        <h2>PAUSED</h2>
-        <button id="btn-resume">Pokračovat</button>
-        <button id="btn-giveup" class="btn-danger">Vzdát to</button>
+    <div id="pause-overlay" class="overlay hidden">
+        <h1>Paused</h1>
+        <button id="btn-resume">Resume</button>
+        <button id="btn-giveup">Give Up</button>
     </div>
 
-    <div id="overlay-gameover" class="overlay hidden">
-        <h1 style="color: #ff3366; text-shadow: 0 0 15px #ff3366;">GAME OVER</h1>
-        <p id="gameover-reason"></p>
-        <table class="leaderboard">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Čas</th>
-                    <th>Level</th>
-                    <th>Skóre</th>
-                </tr>
-            </thead>
-            <tbody id="leaderboard-go"></tbody>
-        </table>
-        <button id="btn-restart-go">Hrát znovu</button>
+    <div id="gameover-overlay" class="overlay hidden">
+        <h1 style="color: #ff3333; text-shadow: 0 0 15px #ff3333" id="end-title">Game Over</h1>
+        <p id="end-stats"></p>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Level</th>
+                        <th>Time</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body"></tbody>
+            </table>
+        </div>
+        <button id="btn-restart">Play Again</button>
     </div>
 
-    <div id="overlay-victory" class="overlay hidden">
-        <h1 style="color: #00ffcc;">VICTORY</h1>
-        <p>Unikl jsi z bludiště!</p>
-        <table class="leaderboard">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Čas</th>
-                    <th>Level</th>
-                    <th>Skóre</th>
-                </tr>
-            </thead>
-            <tbody id="leaderboard-vic"></tbody>
-        </table>
-        <button id="btn-restart-vic">Hrát znovu</button>
-    </div>
+    <div id="portrait-warning">Please rotate your device to landscape mode.</div>
 
     <script>
-        const LOGICAL_W = 1000, LOGICAL_H = 750, GRID_COLS = 20, GRID_ROWS = 15, CELL_SIZE = 50;
+        const WORLD_W = 1000, WORLD_H = 800, CELL_SIZE = 50;
+        const COLS = WORLD_W / CELL_SIZE, ROWS = WORLD_H / CELL_SIZE;
         const LEVELS = [
-            { color: '0, 255, 255', enemies: 3 },
-            { color: '200, 50, 255', enemies: 4 },
-            { color: '0, 255, 0', enemies: 6 },
-            { color: '255, 215, 0', enemies: 8 },
-            { color: '255, 165, 0', enemies: 10 }
+            { color: '#00FFFF', enemies: 4 },
+            { color: '#FF00FF', enemies: 6 },
+            { color: '#00FF00', enemies: 8 },
+            { color: '#FFD700', enemies: 10 },
+            { color: '#FFA500', enemies: 12 }
         ];
 
-        let state = 'menu', ctx, canvas;
-        let lastTime = 0, gameTime = 0, levelIndex = 0, score = 0, pulses = 7, batteriesCollected = 0;
-        let lastSonarTime = 0;
-        let player, exit, enemies = [], walls = [], sonars = [], particles = [], footprints = [], collectibles = [];
-        let keys = { w: 0, a: 0, s: 0, d: 0, ArrowUp: 0, ArrowLeft: 0, ArrowDown: 0, ArrowRight: 0, ' ': 0 };
-        let joystick = { active: false, dx: 0, dy: 0, originX: 0, originY: 0 };
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d', { alpha: false });
+        const uiTime = document.getElementById('ui-time');
+        const uiScore = document.getElementById('ui-score');
+        const uiPulses = document.getElementById('ui-pulses');
+        const uiBatteries = document.getElementById('ui-batteries');
+        const uiLevel = document.getElementById('ui-level');
 
-        let audioCtx, oscBg, gainBg, soundtrackTimeout;
+        let state = 'MENU'; // MENU, PLAYING, PAUSED, END
+        let level = 1, sonars = 7, batteries = 0, score = 0, startTime = 0, gameTime = 0;
+        let lastTime = 0, accumulator = 0, dt = 1000 / 30;
+        let cameraX = 0, cameraY = 0;
+        let keys = { w: false, a: false, s: false, d: false, space: false };
+        let joyActive = false, joyDir = { x: 0, y: 0 };
+        let lastPingTime = 0;
+        let pingIdCounter = 0;
 
-        const UI = {
-            level: document.getElementById('ui-level'), time: document.getElementById('ui-time'),
-            score: document.getElementById('ui-score'), pulses: document.getElementById('ui-pulses'),
-            menu: document.getElementById('overlay-menu'), pause: document.getElementById('overlay-pause'),
-            gameover: document.getElementById('overlay-gameover'), victory: document.getElementById('overlay-victory'),
-            reason: document.getElementById('gameover-reason'), joyArea: document.getElementById('joystick-area'),
-            joyKnob: document.getElementById('joystick-knob')
-        };
+        let player, exit, grid, segments, enemies, pings, particles, collectibles, footprints;
 
-        function initAudio() {
-            if (audioCtx) return;
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioCtx = new AudioContext();
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let bgOsc, bgGain;
+
+        class Player {
+            constructor(x, y) {
+                this.x = x; this.y = y; this.r = 12;
+                this.vx = 0; this.vy = 0; this.speed = 150; this.angle = 0;
+            }
+            update(delta) {
+                let dx = 0, dy = 0;
+                if (keys.w || keys.ArrowUp) dy = -1;
+                if (keys.s || keys.ArrowDown) dy = 1;
+                if (keys.a || keys.ArrowLeft) dx = -1;
+                if (keys.d || keys.ArrowRight) dx = 1;
+                if (joyActive) { dx = joyDir.x; dy = joyDir.y; }
+
+                let len = Math.hypot(dx, dy);
+                if (len > 0) {
+                    dx /= len; dy /= len;
+                    this.angle = Math.atan2(dy, dx);
+                    if (Math.random() < 0.2) footprints.push({ x: this.x, y: this.y, age: 0, a: this.angle });
+                }
+
+                this.vx = dx * this.speed;
+                this.vy = dy * this.speed;
+
+                const substeps = 4;
+                let sdt = delta / substeps;
+                for (let i = 0; i < substeps; i++) {
+                    this.x += this.vx * sdt;
+                    this.y += this.vy * sdt;
+                    this.x = Math.max(this.r, Math.min(WORLD_W - this.r, this.x));
+                    this.y = Math.max(this.r, Math.min(WORLD_H - this.r, this.y));
+                    resolveCollisions(this);
+                }
+
+                if (Math.hypot(this.x - exit.x, this.y - exit.y) < this.r + exit.r) {
+                    nextLevel();
+                }
+            }
+            draw(ctx) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                ctx.shadowBlur = 15; ctx.shadowColor = 'rgba(255,255,255,0.4)';
+                let moving = this.vx !== 0 || this.vy !== 0;
+                let swing = moving ? Math.sin(performance.now() / 100) * 8 : 0;
+
+                ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(-4, -8 + swing, 3.5, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(-4, 8 - swing, 3.5, 0, Math.PI * 2); ctx.fill();
+
+                ctx.fillStyle = '#ccc';
+                ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI * 2); ctx.fill();
+
+                ctx.fillStyle = '#0ff'; ctx.shadowBlur = 5; ctx.shadowColor = '#0ff';
+                ctx.beginPath(); ctx.arc(4, -4, 2, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(4, 4, 2, 0, Math.PI * 2); ctx.fill();
+                ctx.restore();
+            }
         }
 
-        function startSoundtrack() {
-            if (!audioCtx) return;
-            if (oscBg) { oscBg.stop(); oscBg.disconnect(); }
-            oscBg = audioCtx.createOscillator();
-            gainBg = audioCtx.createGain();
-            oscBg.type = 'triangle';
-            oscBg.frequency.value = 40 + levelIndex * 5;
-            oscBg.connect(gainBg);
-            gainBg.connect(audioCtx.destination);
-            gainBg.gain.value = 0.15;
-            oscBg.start();
-            scheduleNextNote();
+        class Enemy {
+            constructor(x, y, moving) {
+                this.x = x; this.y = y; this.r = 14;
+                this.moving = moving;
+                this.vx = moving ? (Math.random() > 0.5 ? 1 : -1) * 80 : 0;
+                this.vy = moving ? (Math.random() > 0.5 ? 1 : -1) * 80 : 0;
+                this.stunTimer = 0; this.angle = 0;
+            }
+            update(delta) {
+                if (this.stunTimer > 0) { this.stunTimer -= delta * 1000; return; }
+                if (this.moving) {
+                    const substeps = 4;
+                    let sdt = delta / substeps;
+                    for (let i = 0; i < substeps; i++) {
+                        this.x += this.vx * sdt;
+                        this.y += this.vy * sdt;
+                        this.x = Math.max(this.r, Math.min(WORLD_W - this.r, this.x));
+                        this.y = Math.max(this.r, Math.min(WORLD_H - this.r, this.y));
+                        let norm = resolveCollisions(this, true);
+                        if (norm) {
+                            let dot = this.vx * norm.x + this.vy * norm.y;
+                            this.vx -= 2 * dot * norm.x;
+                            this.vy -= 2 * dot * norm.y;
+                        }
+                    }
+                    this.angle += delta * 2;
+                } else {
+                    this.angle += delta;
+                }
+
+                let dx = this.x - player.x, dy = this.y - player.y;
+                if (dx * dx + dy * dy < (this.r + player.r) ** 2) {
+                    endGame(false);
+                }
+            }
+            draw(ctx) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                if (this.stunTimer > 0) {
+                    ctx.translate((Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4);
+                    ctx.shadowBlur = 10; ctx.shadowColor = Math.random() > 0.5 ? '#00f' : '#f00';
+                    ctx.fillStyle = ctx.shadowColor;
+                } else {
+                    ctx.rotate(this.angle);
+                    ctx.shadowBlur = 15; ctx.shadowColor = '#f00';
+                    ctx.fillStyle = '#f00';
+                }
+
+                ctx.beginPath();
+                for (let i = 0; i < 3; i++) {
+                    let a = i * Math.PI * 2 / 3;
+                    ctx.lineTo(Math.cos(a) * 16, Math.sin(a) * 16);
+                }
+                ctx.closePath(); ctx.fill();
+
+                ctx.fillStyle = this.stunTimer > 0 ? '#fff' : '#000';
+                ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+
+                if (this.stunTimer <= 0) {
+                    ctx.fillStyle = '#f00'; ctx.shadowBlur = 0;
+                    ctx.beginPath(); ctx.arc(0, 0, 2, 0, Math.PI * 2); ctx.fill();
+                }
+                ctx.restore();
+            }
         }
 
-        function stopSoundtrack() {
-            if (oscBg) { oscBg.stop(); oscBg.disconnect(); oscBg = null; }
-            clearTimeout(soundtrackTimeout);
+        class Ping {
+            constructor(x, y, isSuper) {
+                this.id = ++pingIdCounter;
+                this.x = x; this.y = y; this.r = 10;
+                this.isSuper = isSuper;
+                this.maxR = isSuper ? 800 : 350;
+                this.speed = isSuper ? 600 : 400;
+                this.active = true;
+            }
+            update(delta) {
+                if (!this.active) return;
+                this.r += this.speed * delta;
+                if (this.r > this.maxR) this.active = false;
+
+                let r2 = this.r * this.r;
+                let w = this.speed * delta * 1.5;
+                let outer2 = (this.r + w) ** 2, inner2 = Math.max(0, this.r - w) ** 2;
+
+                for (let s of segments) {
+                    if (s.lastPingId === this.id) continue;
+                    let cx = (s.x1 + s.x2) / 2, cy = (s.y1 + s.y2) / 2;
+                    let dx = cx - this.x, dy = cy - this.y;
+                    let d2 = dx * dx + dy * dy;
+                    if (d2 <= outer2 && d2 >= inner2) {
+                        s.lastPingId = this.id;
+                        s.litTimer = this.isSuper ? 9000 : 3000;
+                        s.maxLit = s.litTimer;
+                        for (let i = 0; i < (this.isSuper ? 3 : 1); i++) spawnParticle(cx, cy, s.color);
+                    }
+                }
+
+                for (let c of collectibles) {
+                    if (!c.lit) {
+                        let dx = c.x - this.x, dy = c.y - this.y;
+                        if (dx * dx + dy * dy <= outer2) c.lit = true;
+                    }
+                }
+
+                for (let e of enemies) {
+                    let dx = e.x - this.x, dy = e.y - this.y;
+                    if (dx * dx + dy * dy <= outer2 && e.stunTimer <= 0) {
+                        e.stunTimer = this.isSuper ? 4000 : 2000;
+                        spawnParticle(e.x, e.y, '#fff', 5);
+                    }
+                }
+            }
+            draw(ctx) {
+                if (!this.active) return;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+                ctx.lineWidth = this.isSuper ? 4 : 2;
+                ctx.strokeStyle = this.isSuper ? `rgba(200,50,255,${1 - this.r / this.maxR})` : `rgba(255,255,255,${1 - this.r / this.maxR})`;
+                ctx.shadowBlur = 10; ctx.shadowColor = ctx.strokeStyle;
+                ctx.stroke(); ctx.shadowBlur = 0;
+            }
         }
 
-        function scheduleNextNote() {
-            if (state !== 'playing') return;
-            let osc = audioCtx.createOscillator();
-            let gain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.value = 100 + Math.random() * 200 + levelIndex * 30;
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            gain.gain.setValueAtTime(0, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 1);
-            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2.5);
-            osc.start(audioCtx.currentTime);
-            osc.stop(audioCtx.currentTime + 2.5);
-            soundtrackTimeout = setTimeout(scheduleNextNote, 2000 + Math.random() * 3000);
-        }
+        function resolveCollisions(entity, returnNormal = false) {
+            let cx = Math.floor(entity.x / CELL_SIZE), cy = Math.floor(entity.y / CELL_SIZE);
+            let hitNormal = null;
+            let tTime = performance.now();
+            for (let ny = Math.max(0, cy - 1); ny <= Math.min(ROWS - 1, cy + 1); ny++) {
+                for (let nx = Math.max(0, cx - 1); nx <= Math.min(COLS - 1, cx + 1); nx++) {
+                    let cellSegs = grid[ny][nx].segments;
+                    for (let s of cellSegs) {
+                        if (s.shifting && Math.sin(tTime / 500 + s.shiftPhase) < 0) continue;
+                        let lx = s.x2 - s.x1, ly = s.y2 - s.y1;
+                        let len2 = lx * lx + ly * ly;
+                        let t = Math.max(0, Math.min(1, ((entity.x - s.x1) * lx + (entity.y - s.y1) * ly) / len2));
+                        let px = s.x1 + t * lx, py = s.y1 + t * ly;
+                        let dx = entity.x - px, dy = entity.y - py;
+                        let dist2 = dx * dx + dy * dy;
 
-        function playPing() {
-            if (!audioCtx) return;
-            let osc = audioCtx.createOscillator();
-            let gain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(1400, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(180, audioCtx.currentTime + 0.9);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.9);
-            osc.start(audioCtx.currentTime);
-            osc.stop(audioCtx.currentTime + 0.9);
-        }
-
-        function playDeath() {
-            if (!audioCtx) return;
-            let osc = audioCtx.createOscillator();
-            let gain = audioCtx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-            osc.frequency.linearRampToValueAtTime(30, audioCtx.currentTime + 0.6);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
-            osc.start(audioCtx.currentTime);
-            osc.stop(audioCtx.currentTime + 0.6);
-        }
-
-        function playVictory() {
-            if (!audioCtx) return;
-            let notes = [523, 659, 784, 1047];
-            notes.forEach((f, i) => {
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.value = f;
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                let t = audioCtx.currentTime + i * 0.15;
-                gain.gain.setValueAtTime(0, t);
-                gain.gain.linearRampToValueAtTime(0.2, t + 0.05);
-                gain.gain.linearRampToValueAtTime(0, t + 0.5);
-                osc.start(t);
-                osc.stop(t + 0.5);
-            });
-        }
-
-        function saveScore() {
-            let s = levelIndex * 1000 - Math.floor(gameTime) * 10 + pulses * 100 + batteriesCollected * 50;
-            if (s < 0) s = 0;
-            let scores = JSON.parse(localStorage.getItem('sonar_maze_scores') || '[]');
-            scores.push({ time: gameTime.toFixed(1), level: levelIndex + 1, score: s });
-            scores.sort((a, b) => b.score - a.score);
-            scores = scores.slice(0, 5);
-            localStorage.setItem('sonar_maze_scores', JSON.stringify(scores));
-            return scores;
-        }
-
-        function renderLeaderboard(id, scores) {
-            let tbody = document.getElementById(id);
-            tbody.innerHTML = scores.map((s, i) => `<tr><td>${i + 1}</td><td>${s.time}s</td><td>${s.level}</td><td>${s.score}</td></tr>`).join('');
-        }
-
-        function dist2(p1, p2) { return (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y); }
-        function distToSegmentSquared(p, v, w) {
-            let l2 = dist2(v, w);
-            if (l2 === 0) return dist2(p, v);
-            let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
-            t = Math.max(0, Math.min(1, t));
-            return dist2(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) });
+                        if (dist2 < entity.r * entity.r) {
+                            let dist = Math.sqrt(dist2);
+                            if (dist === 0) { dx = -ly; dy = lx; dist = Math.sqrt(dx * dx + dy * dy); }
+                            let nx_dir = dx / dist, ny_dir = dy / dist;
+                            let pen = entity.r - dist + 0.1;
+                            entity.x += nx_dir * pen;
+                            entity.y += ny_dir * pen;
+                            hitNormal = { x: nx_dir, y: ny_dir };
+                        }
+                    }
+                }
+            }
+            return hitNormal;
         }
 
         function generateMaze() {
-            let grid = Array.from({ length: GRID_COLS }, () => Array.from({ length: GRID_ROWS }, () => ({ n: 1, s: 1, e: 1, w: 1, v: 0 })));
-            let stack = [{ x: 0, y: 0 }];
-            grid[0][0].v = 1;
-            let dirs = [{ x: 0, y: -1, w: 'n', o: 's' }, { x: 0, y: 1, w: 's', o: 'n' }, { x: 1, y: 0, w: 'e', o: 'w' }, { x: -1, y: 0, w: 'w', o: 'e' }];
+            grid = Array.from({ length: ROWS }, (_, y) => Array.from({ length: COLS }, (_, x) => ({
+                x, y, visited: false, segments: [],
+                walls: { n: true, e: true, s: true, w: true }
+            })));
+
+            let stack = [grid[0][0]];
+            grid[0][0].visited = true;
 
             while (stack.length > 0) {
                 let curr = stack[stack.length - 1];
-                let unv = dirs.map(d => ({ x: curr.x + d.x, y: curr.y + d.y, w: d.w, o: d.o }))
-                    .filter(d => d.x >= 0 && d.x < GRID_COLS && d.y >= 0 && d.y < GRID_ROWS && !grid[d.x][d.y].v);
-                if (unv.length > 0) {
-                    let next = unv[Math.floor(Math.random() * unv.length)];
-                    grid[curr.x][curr.y][next.w] = 0;
-                    grid[next.x][next.y][next.o] = 0;
-                    grid[next.x][next.y].v = 1;
-                    stack.push({ x: next.x, y: next.y });
-                } else stack.pop();
-            }
+                let neighbors = [];
+                let { x, y } = curr;
+                if (y > 0 && !grid[y - 1][x].visited) neighbors.push({ nx: x, ny: y - 1, dir: 'n', opp: 's' });
+                if (x < COLS - 1 && !grid[y][x + 1].visited) neighbors.push({ nx: x + 1, ny: y, dir: 'e', opp: 'w' });
+                if (y < ROWS - 1 && !grid[y + 1][x].visited) neighbors.push({ nx: x, ny: y + 1, dir: 's', opp: 'n' });
+                if (x > 0 && !grid[y][x - 1].visited) neighbors.push({ nx: x - 1, ny: y, dir: 'w', opp: 'e' });
 
-            // Remove extra walls for loops
-            for (let i = 0; i < 15; i++) {
-                let x = Math.floor(Math.random() * (GRID_COLS - 2)) + 1, y = Math.floor(Math.random() * (GRID_ROWS - 2)) + 1;
-                if (Math.random() > 0.5) { grid[x][y].e = 0; grid[x + 1][y].w = 0; }
-                else { grid[x][y].s = 0; grid[x][y + 1].n = 0; }
-            }
-
-            walls = [];
-            let id = 0;
-            let addWall = (x1, y1, x2, y2) => {
-                let shift = Math.random() < 0.1 && (x1 > 0 && x1 < LOGICAL_W && y1 > 0 && y1 < LOGICAL_H);
-                walls.push({ id: id++, p1: { x: x1, y: y1 }, p2: { x: x2, y: y2 }, glow: 0, active: true, shift: shift, shiftOff: Math.random() * 10, litBy: new Set() });
-            };
-
-            for (let x = 0; x < GRID_COLS; x++) {
-                for (let y = 0; y < GRID_ROWS; y++) {
-                    let px = x * CELL_SIZE, py = y * CELL_SIZE;
-                    if (grid[x][y].n) addWall(px, py, px + CELL_SIZE, py);
-                    if (grid[x][y].s) addWall(px, py + CELL_SIZE, px + CELL_SIZE, py + CELL_SIZE);
-                    if (grid[x][y].w) addWall(px, py, px, py + CELL_SIZE);
-                    if (grid[x][y].e) addWall(px + CELL_SIZE, py, px + CELL_SIZE, py + CELL_SIZE);
+                if (neighbors.length > 0) {
+                    let next = neighbors[Math.floor(Math.random() * neighbors.length)];
+                    curr.walls[next.dir] = false;
+                    grid[next.ny][next.nx].walls[next.opp] = false;
+                    grid[next.ny][next.nx].visited = true;
+                    stack.push(grid[next.ny][next.nx]);
+                } else {
+                    stack.pop();
                 }
             }
-            // Dedup walls
-            let wSet = new Set(), uWalls = [];
-            for (let w of walls) {
-                let s1 = `${w.p1.x},${w.p1.y}-${w.p2.x},${w.p2.y}`, s2 = `${w.p2.x},${w.p2.y}-${w.p1.x},${w.p1.y}`;
-                if (!wSet.has(s1) && !wSet.has(s2)) { wSet.add(s1); uWalls.push(w); }
+
+            // Remove random walls for loops
+            for (let i = 0; i < ROWS * COLS * 0.1; i++) {
+                let rx = Math.floor(Math.random() * (COLS - 2)) + 1;
+                let ry = Math.floor(Math.random() * (ROWS - 2)) + 1;
+                if (Math.random() > 0.5) { grid[ry][rx].walls.e = false; grid[ry][rx + 1].walls.w = false; }
+                else { grid[ry][rx].walls.s = false; grid[ry + 1][rx].walls.n = false; }
             }
-            walls = uWalls;
+
+            segments = [];
+            let col = LEVELS[level - 1].color;
+
+            function addSeg(x1, y1, x2, y2, cell) {
+                let isShift = Math.random() < 0.08 && x1 > 0 && y1 > 0 && x2 < WORLD_W && y2 < WORLD_H;
+                let cx = (x1 + x2) / 2, cy = (y1 + y2) / 2;
+                let s1 = { x1, y1, x2: cx, y2: cy, litTimer: 0, maxLit: 1, color: col, shifting: isShift, shiftPhase: Math.random() * Math.PI * 2, lastPingId: 0 };
+                let s2 = { x1: cx, y1: cy, x2, y2, litTimer: 0, maxLit: 1, color: col, shifting: isShift, shiftPhase: Math.random() * Math.PI * 2, lastPingId: 0 };
+                segments.push(s1, s2);
+                cell.segments.push(s1, s2);
+                if (cell.y > 0) grid[cell.y - 1][cell.x].segments.push(s1, s2);
+                if (cell.y < ROWS - 1) grid[cell.y + 1][cell.x].segments.push(s1, s2);
+                if (cell.x > 0) grid[cell.y][cell.x - 1].segments.push(s1, s2);
+                if (cell.x < COLS - 1) grid[cell.y][cell.x + 1].segments.push(s1, s2);
+            }
+
+            for (let y = 0; y < ROWS; y++) {
+                for (let x = 0; x < COLS; x++) {
+                    let px = x * CELL_SIZE, py = y * CELL_SIZE;
+                    if (grid[y][x].walls.n && y === 0) addSeg(px, py, px + CELL_SIZE, py, grid[y][x]);
+                    if (grid[y][x].walls.w && x === 0) addSeg(px, py, px, py + CELL_SIZE, grid[y][x]);
+                    if (grid[y][x].walls.s) addSeg(px, py + CELL_SIZE, px + CELL_SIZE, py + CELL_SIZE, grid[y][x]);
+                    if (grid[y][x].walls.e) addSeg(px + CELL_SIZE, py, px + CELL_SIZE, py + CELL_SIZE, grid[y][x]);
+                }
+            }
         }
 
-        function spawnEntities() {
-            player = { x: CELL_SIZE / 2, y: CELL_SIZE / 2, r: 12, vx: 0, vy: 0, speed: 180, moveTime: 0 };
-            exit = { x: (GRID_COLS - 1) * CELL_SIZE + CELL_SIZE / 2, y: (GRID_ROWS - 1) * CELL_SIZE + CELL_SIZE / 2, r: 15, time: 0 };
+        function spawnParticle(x, y, color, count = 2) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x, y, vx: (Math.random() - 0.5) * 150, vy: (Math.random() - 0.5) * 150,
+                    life: 1, color, type: 'spark'
+                });
+            }
+        }
+
+        function spawnBatteryParticle(x, y) {
+            for (let i = 0; i < 10; i++) {
+                particles.push({
+                    x, y, vx: (Math.random() - 0.5) * 200, vy: (Math.random() - 0.5) * 200,
+                    life: 1.5, color: '#FFD700', type: 'ui'
+                });
+            }
+        }
+
+        function generateLevel() {
+            player = new Player(CELL_SIZE / 2, CELL_SIZE / 2);
+            exit = { x: WORLD_W - CELL_SIZE / 2, y: WORLD_H - CELL_SIZE / 2, r: 15 };
+
+            generateMaze();
 
             enemies = [];
-            let enemyCount = LEVELS[levelIndex].enemies;
-            for (let i = 0; i < enemyCount; i++) {
+            let numEnemies = LEVELS[level - 1].enemies;
+            for (let i = 0; i < numEnemies; i++) {
                 let ex, ey;
                 do {
-                    ex = (Math.floor(Math.random() * (GRID_COLS - 2)) + 1) * CELL_SIZE + CELL_SIZE / 2;
-                    ey = (Math.floor(Math.random() * (GRID_ROWS - 2)) + 1) * CELL_SIZE + CELL_SIZE / 2;
-                } while (dist2({ x: ex, y: ey }, player) < 40000 || dist2({ x: ex, y: ey }, exit) < 10000);
-
-                let moving = i < enemyCount * 0.5;
-                let ang = Math.random() * Math.PI * 2;
-                let spd = moving ? 60 + Math.random() * 40 : 0;
-                enemies.push({ x: ex, y: ey, r: 14, vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd, stun: 0, litBy: new Set(), time: Math.random() * 10 });
+                    ex = Math.floor(Math.random() * COLS) * CELL_SIZE + CELL_SIZE / 2;
+                    ey = Math.floor(Math.random() * ROWS) * CELL_SIZE + CELL_SIZE / 2;
+                } while (ex < CELL_SIZE * 4 && ey < CELL_SIZE * 4);
+                enemies.push(new Enemy(ex, ey, i < numEnemies / 2));
             }
 
             collectibles = [];
             for (let i = 0; i < 3; i++) {
                 let cx, cy;
                 do {
-                    cx = (Math.floor(Math.random() * GRID_COLS)) * CELL_SIZE + CELL_SIZE / 2;
-                    cy = (Math.floor(Math.random() * GRID_ROWS)) * CELL_SIZE + CELL_SIZE / 2;
-                } while (dist2({ x: cx, y: cy }, player) < 10000);
-                let type = i === 2 ? 'super' : 'battery';
-                collectibles.push({ x: cx, y: cy, type: type, r: 12, glow: 0 });
+                    cx = Math.floor(Math.random() * COLS) * CELL_SIZE + CELL_SIZE / 2;
+                    cy = Math.floor(Math.random() * ROWS) * CELL_SIZE + CELL_SIZE / 2;
+                } while (cx < CELL_SIZE * 3 && cy < CELL_SIZE * 3);
+                collectibles.push({ x: cx, y: cy, r: 12, type: i < 2 ? 'battery' : 'radar', lit: false, bob: Math.random() * Math.PI });
             }
+
+            pings = []; particles = []; footprints = [];
+            uiLevel.textContent = `Level: ${level}`;
+            uiLevel.style.color = LEVELS[level - 1].color;
+            updateUI();
+        }
+
+        function triggerSonar(isSuper = false) {
+            let now = performance.now();
+            if (now - lastPingTime < 1000 && !isSuper) return;
+            if (!isSuper && sonars <= 0) return;
+
+            if (!isSuper) { sonars--; updateUI(); }
+            lastPingTime = now;
+            pings.push(new Ping(player.x, player.y, isSuper));
+            playTone(1400, 180, 0.9, 'sine');
+        }
+
+        function playTone(f1, f2, dur, type = 'sine') {
+            if (audioCtx.state === 'suspended') return;
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(f1, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(f2, audioCtx.currentTime + dur);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + dur);
+        }
+
+        function startAudioLoop() {
+            if (!bgOsc) {
+                bgOsc = audioCtx.createOscillator();
+                bgGain = audioCtx.createGain();
+                bgOsc.type = 'sine';
+                bgOsc.connect(bgGain); bgGain.connect(audioCtx.destination);
+                bgOsc.start();
+            }
+            bgOsc.frequency.value = 40 + level * 5;
+            bgGain.gain.value = 0.2;
+
+            function randomNote() {
+                if (state !== 'PLAYING') { setTimeout(randomNote, 1000); return; }
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                let notes = [130.81, 146.83, 164.81, 196.00];
+                osc.frequency.value = notes[Math.floor(Math.random() * notes.length)];
+                gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 0.5);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.5);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + 1.5);
+                setTimeout(randomNote, 2000 - level * 200 + Math.random() * 1000);
+            }
+            randomNote();
+        }
+
+        function playDeath() {
+            if (audioCtx.state === 'suspended') return;
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.6);
+            gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.6);
+        }
+
+        function playVictory() {
+            if (audioCtx.state === 'suspended') return;
+            let freqs = [523.25, 659.25, 783.99, 1046.50];
+            freqs.forEach((f, i) => {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = f;
+                gain.gain.setValueAtTime(0, audioCtx.currentTime + i * 0.15);
+                gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + i * 0.15 + 0.05);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + i * 0.15 + 0.5);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime + i * 0.15); osc.stop(audioCtx.currentTime + i * 0.15 + 0.5);
+            });
         }
 
         function initGame() {
-            canvas = document.getElementById('gameCanvas');
-            ctx = canvas.getContext('2d', { alpha: false });
-            UI.menu.classList.add('hidden');
-            UI.pause.classList.add('hidden');
-            UI.gameover.classList.add('hidden');
-            UI.victory.classList.add('hidden');
+            level = 1; sonars = 7; batteries = 0; score = 0; gameTime = 0;
+            startTime = performance.now();
+            document.getElementById('menu-overlay').classList.add('hidden');
+            document.getElementById('gameover-overlay').classList.add('hidden');
+            document.getElementById('pause-overlay').classList.add('hidden');
 
-            levelIndex = 0; score = 0; pulses = 7; batteriesCollected = 0; gameTime = 0;
-            resetLevel();
-            state = 'playing';
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            startAudioLoop();
+            generateLevel();
+            state = 'PLAYING';
             lastTime = performance.now();
-
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-            startSoundtrack();
-            requestAnimationFrame(gameLoop);
+            requestAnimationFrame(loop);
         }
 
-        function resetLevel() {
-            generateMaze();
-            spawnEntities();
-            sonars = []; particles = []; footprints = [];
-            UI.level.innerText = levelIndex + 1;
-            UI.pulses.innerText = pulses;
-            UI.score.innerText = score;
+        function nextLevel() {
+            level++;
+            if (level > 5) { endGame(true); return; }
+            sonars += 5;
+            generateLevel();
+            updateUI();
         }
 
-        function spawnSonar(isSuper = false) {
-            let now = performance.now();
-            if (now - lastSonarTime < 1000 && !isSuper) return;
-            if (!isSuper && pulses <= 0) return;
-
-            if (!isSuper) { pulses--; UI.pulses.innerText = pulses; }
-            lastSonarTime = now;
-            sonars.push({ id: Math.random(), x: player.x, y: player.y, r: 10, maxR: isSuper ? 800 : 400, spd: 400, super: isSuper });
-            playPing();
-        }
-
-        function spawnParticles(x, y, color, count, targetUI = false) {
-            for (let i = 0; i < count; i++) {
-                let ang = Math.random() * Math.PI * 2, spd = 20 + Math.random() * 80;
-                particles.push({
-                    x: x, y: y, vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd,
-                    life: 1, color: color, ui: targetUI
-                });
-            }
-        }
-
-        function resolveCollision(entity, dt, isPlayer = false) {
-            const SUBSTEPS = 4;
-            let sdt = dt / SUBSTEPS;
-
-            for (let s = 0; s < SUBSTEPS; s++) {
-                entity.x += entity.vx * sdt;
-                entity.y += entity.vy * sdt;
-
-                for (let w of walls) {
-                    if (!w.active) continue;
-                    let d2 = distToSegmentSquared(entity, w.p1, w.p2);
-                    let r2 = entity.r * entity.r;
-                    if (d2 < r2) {
-                        let d = Math.sqrt(d2);
-                        if (d === 0) continue;
-                        let overlap = entity.r - d + 0.1;
-
-                        // Find closest point
-                        let l2 = dist2(w.p1, w.p2);
-                        let cx, cy;
-                        if (l2 === 0) { cx = w.p1.x; cy = w.p1.y; }
-                        else {
-                            let t = ((entity.x - w.p1.x) * (w.p2.x - w.p1.x) + (entity.y - w.p1.y) * (w.p2.y - w.p1.y)) / l2;
-                            t = Math.max(0, Math.min(1, t));
-                            cx = w.p1.x + t * (w.p2.x - w.p1.x);
-                            cy = w.p1.y + t * (w.p2.y - w.p1.y);
-                        }
-
-                        let nx = (entity.x - cx) / d, ny = (entity.y - cy) / d;
-                        entity.x += nx * overlap;
-                        entity.y += ny * overlap;
-
-                        if (!isPlayer) {
-                            let dot = entity.vx * nx + entity.vy * ny;
-                            entity.vx -= 2 * dot * nx;
-                            entity.vy -= 2 * dot * ny;
-                        }
-                    }
-                }
+        function endGame(win) {
+            state = 'END';
+            if (bgGain) bgGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+            if (win) {
+                playVictory();
+                score += sonars * 500 + batteries * 200 + Math.max(0, 10000 - Math.floor(gameTime) * 10);
+                document.getElementById('end-title').textContent = "Victory!";
+                document.getElementById('end-title').style.color = "var(--neon-gold)";
+            } else {
+                playDeath();
+                document.getElementById('end-title').textContent = "Game Over";
+                document.getElementById('end-title').style.color = "#ff3333";
             }
 
-            entity.x = Math.max(entity.r, Math.min(LOGICAL_W - entity.r, entity.x));
-            entity.y = Math.max(entity.r, Math.min(LOGICAL_H - entity.r, entity.y));
+            document.getElementById('end-stats').innerHTML = `Time: ${formatTime(gameTime)} | Level: ${win ? 5 : level} | Score: ${score}`;
+            saveScore(win ? 5 : level, gameTime, score);
+            showLeaderboard();
+            document.getElementById('gameover-overlay').classList.remove('hidden');
         }
 
-        function update(dt) {
+        function pauseGame() {
+            if (state !== 'PLAYING') return;
+            state = 'PAUSED';
+            document.getElementById('pause-overlay').classList.remove('hidden');
+            if (bgGain) bgGain.gain.value = 0;
+        }
+
+        function resumeGame() {
+            state = 'PLAYING';
+            document.getElementById('pause-overlay').classList.add('hidden');
+            lastTime = performance.now();
+            if (bgGain) bgGain.gain.value = 0.2;
+            requestAnimationFrame(loop);
+        }
+
+        function updateUI() {
+            uiPulses.textContent = sonars;
+            uiBatteries.textContent = batteries;
+            uiScore.textContent = score;
+        }
+
+        function formatTime(s) {
+            let m = Math.floor(s / 60);
+            let sec = Math.floor(s % 60);
+            return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+        }
+
+        function resizeCanvas() {
+            let cw = Math.min(WORLD_W, window.innerWidth);
+            let ch = window.innerHeight - 40;
+            canvas.width = cw;
+            canvas.height = ch;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function loop(timestamp) {
+            if (state !== 'PLAYING') return;
+            let dt = Math.min((timestamp - lastTime) / 1000, 0.1);
+            lastTime = timestamp;
             gameTime += dt;
-            UI.time.innerText = gameTime.toFixed(1);
+            uiTime.textContent = formatTime(gameTime);
 
-            // Player movement
-            let ix = 0, iy = 0;
-            if (keys.w || keys.ArrowUp) iy -= 1;
-            if (keys.s || keys.ArrowDown) iy += 1;
-            if (keys.a || keys.ArrowLeft) ix -= 1;
-            if (keys.d || keys.ArrowRight) ix += 1;
+            update(dt);
+            render();
 
-            if (joystick.active) { ix = joystick.dx; iy = joystick.dy; }
+            requestAnimationFrame(loop);
+        }
 
-            let len = Math.sqrt(ix * ix + iy * iy);
-            if (len > 0) { ix /= len; iy /= len; player.moveTime += dt; }
+        function update(delta) {
+            player.update(delta);
 
-            player.vx = ix * player.speed;
-            player.vy = iy * player.speed;
-
-            if (len > 0 && Math.random() < dt * 10) {
-                footprints.push({ x: player.x, y: player.y, life: 1 });
+            for (let i = footprints.length - 1; i >= 0; i--) {
+                footprints[i].age += delta * 1000;
+                if (footprints[i].age > 5000) footprints.splice(i, 1);
             }
 
-            resolveCollision(player, dt, true);
+            enemies.forEach(e => e.update(delta));
+            pings.forEach(p => p.update(delta));
+            pings = pings.filter(p => p.active);
 
-            // Walls logic
-            let now = performance.now();
-            for (let w of walls) {
-                if (w.shift) w.active = Math.sin(now / 1000 + w.shiftOff) > 0;
-                if (w.glow > 0) w.glow = Math.max(0, w.glow - dt / (w.glowMaxTime || 3));
+            for (let s of segments) {
+                if (s.litTimer > 0) s.litTimer -= delta * 1000;
             }
 
-            // Sonar expansion
-            for (let i = sonars.length - 1; i >= 0; i--) {
-                let s = sonars[i];
-                s.r += s.spd * dt;
-
-                let sr2 = s.r * s.r;
-
-                // Check walls
-                for (let w of walls) {
-                    if (!w.active) continue;
-                    let d2 = distToSegmentSquared({ x: s.x, y: s.y }, w.p1, w.p2);
-                    if (d2 < sr2 && d2 > (s.r - s.spd * dt - 20) * (s.r - s.spd * dt - 20)) {
-                        w.glow = 1;
-                        w.glowMaxTime = s.super ? 9 : 3;
-                        if (!w.litBy.has(s.id)) {
-                            w.litBy.add(s.id);
-                            // find exact intersection roughly
-                            let t = Math.random();
-                            let px = w.p1.x + t * (w.p2.x - w.p1.x), py = w.p1.y + t * (w.p2.y - w.p1.y);
-                            spawnParticles(px, py, `rgb(${LEVELS[levelIndex].color})`, 3);
-                        }
-                    }
-                }
-
-                // Check enemies
-                for (let e of enemies) {
-                    if (dist2(e, s) < sr2 && !e.litBy.has(s.id)) {
-                        e.litBy.add(s.id);
-                        e.stun = s.super ? 4 : 2;
-                        spawnParticles(e.x, e.y, '#00ffff', 5);
-                    }
-                }
-
-                // Check collectibles
-                for (let c of collectibles) {
-                    if (dist2(c, s) < sr2) c.glow = 1.0;
-                }
-
-                if (s.r > s.maxR) sonars.splice(i, 1);
-            }
-
-            // Collectibles
             for (let i = collectibles.length - 1; i >= 0; i--) {
                 let c = collectibles[i];
-                if (c.glow > 0) c.glow = Math.max(0, c.glow - dt);
-                if (dist2(player, c) < (player.r + c.r) * (player.r + c.r)) {
+                c.bob += delta * 5;
+                let dx = c.x - player.x, dy = c.y - player.y;
+                if (dx * dx + dy * dy < (c.r + player.r) ** 2) {
                     if (c.type === 'battery') {
-                        pulses += 3; batteriesCollected++; UI.pulses.innerText = pulses;
-                        spawnParticles(c.x, c.y, '#ffcc00', 10, true);
+                        batteries++; sonars += 3; score += 200; updateUI();
+                        spawnBatteryParticle(c.x, c.y);
                     } else {
-                        spawnSonar(true);
+                        triggerSonar(true);
                     }
                     collectibles.splice(i, 1);
                 }
             }
 
-            // Enemies
-            for (let e of enemies) {
-                e.time += dt;
-                if (e.stun > 0) { e.stun -= dt; continue; }
-
-                resolveCollision(e, dt, false);
-
-                if (dist2(player, e) < (player.r + e.r - 4) * (player.r + e.r - 4)) {
-                    gameOver("Byl jsi polapen entitou!");
-                    return;
-                }
-            }
-
-            // Exit
-            exit.time += dt;
-            if (dist2(player, exit) < (player.r + exit.r) * (player.r + exit.r)) {
-                levelIndex++;
-                if (levelIndex > 4) { victory(); return; }
-                pulses += 5; score += 500;
-                resetLevel();
-                return;
-            }
-
-            // Check death by ammo (only if no sonars active)
-            if (pulses <= 0 && sonars.length === 0) {
-                // give tiny margin
-                let canReach = dist2(player, exit) < 40000; // rough heuristic
-                if (!canReach) gameOver("Došly ti sonarové pulzy a jsi ztracen ve tmě.");
-            }
-
-            // Particles
             for (let i = particles.length - 1; i >= 0; i--) {
                 let p = particles[i];
-                p.life -= dt * (p.ui ? 1 : 2);
-                p.x += p.vx * dt; p.y += p.vy * dt;
-                if (p.ui) { p.vx *= 0.95; p.vy *= 0.95; p.vy -= 100 * dt; }
+                p.life -= delta;
+                p.x += p.vx * delta; p.y += p.vy * delta;
+                if (p.type === 'ui') {
+                    let tx = cameraX + canvas.width / 2;
+                    let ty = cameraY - 40;
+                    let dx = tx - p.x, dy = ty - p.y;
+                    p.vx += dx * delta * 5; p.vy += dy * delta * 5;
+                }
                 if (p.life <= 0) particles.splice(i, 1);
             }
 
-            // Footprints
-            for (let i = footprints.length - 1; i >= 0; i--) {
-                footprints[i].life -= dt / 5;
-                if (footprints[i].life <= 0) footprints.splice(i, 1);
-            }
+            cameraX = Math.max(0, Math.min(WORLD_W - canvas.width, player.x - canvas.width / 2));
+            cameraY = Math.max(0, Math.min(WORLD_H - canvas.height, player.y - canvas.height / 2));
         }
 
-        function draw() {
-            let cw = window.innerWidth, ch = window.innerHeight - 40;
-            canvas.width = Math.min(LOGICAL_W, cw);
-            canvas.height = Math.min(LOGICAL_H, ch);
-
-            ctx.fillStyle = '#050505';
+        function render() {
+            ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             ctx.save();
-            let cx = 0, cy = 0;
-            if (cw < LOGICAL_W || ch < LOGICAL_H) {
-                cx = player.x - canvas.width / 2;
-                cy = player.y - canvas.height / 2;
-                cx = Math.max(0, Math.min(cx, LOGICAL_W - canvas.width));
-                cy = Math.max(0, Math.min(cy, LOGICAL_H - canvas.height));
-                ctx.translate(-cx, -cy);
-            }
+            ctx.translate(-cameraX, -cameraY);
 
             ctx.globalCompositeOperation = 'lighter';
 
-            // Footprints
-            footprints.forEach(f => {
-                ctx.fillStyle = `rgba(100, 255, 255, ${f.life * 0.3})`;
-                ctx.beginPath(); ctx.arc(f.x, f.y, 4, 0, Math.PI * 2); ctx.fill();
-            });
-
-            // Walls - batching
-            let buckets = Array.from({ length: 11 }, () => []);
-            for (let w of walls) {
-                if (!w.active || w.glow <= 0.05) continue;
-                let b = Math.min(10, Math.floor(w.glow * 10));
-                buckets[b].push(w);
+            for (let f of footprints) {
+                let op = 1 - f.age / 5000;
+                ctx.fillStyle = `rgba(100, 200, 255, ${op * 0.2})`;
+                ctx.beginPath(); ctx.arc(f.x, f.y, 3, 0, Math.PI * 2); ctx.fill();
             }
 
-            let lColor = LEVELS[levelIndex].color;
+            let time = performance.now();
+            let buckets = Array.from({ length: 11 }, () => []);
+
+            for (let s of segments) {
+                if (s.litTimer > 0) {
+                    if (s.shifting && Math.sin(time / 500 + s.shiftPhase) < 0) {
+                        let opBucket = Math.floor((s.litTimer / s.maxLit) * 10 * 0.3);
+                        buckets[opBucket].push({ ...s, dashed: true });
+                    } else {
+                        let opBucket = Math.floor((s.litTimer / s.maxLit) * 10);
+                        buckets[opBucket].push(s);
+                    }
+                }
+            }
+
             ctx.lineCap = 'round';
             for (let i = 1; i <= 10; i++) {
                 if (buckets[i].length === 0) continue;
+                let op = i / 10;
+                ctx.strokeStyle = `rgba(${hexToRgb(LEVELS[level - 1].color)}, ${op})`;
+                ctx.shadowBlur = op * 10; ctx.shadowColor = LEVELS[level - 1].color;
+                ctx.lineWidth = 2;
+
                 ctx.beginPath();
-                for (let w of buckets[i]) {
-                    ctx.moveTo(w.p1.x, w.p1.y);
-                    ctx.lineTo(w.p2.x, w.p2.y);
+                for (let s of buckets[i]) {
+                    if (s.dashed) continue;
+                    ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x2, s.y2);
                 }
-                ctx.strokeStyle = `rgba(${lColor}, ${i / 10})`;
-                ctx.lineWidth = 2 + i;
                 ctx.stroke();
-                ctx.strokeStyle = `rgba(255,255,255, ${i / 20})`;
-                ctx.lineWidth = 1;
+
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                for (let s of buckets[i]) {
+                    if (!s.dashed) continue;
+                    ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x2, s.y2);
+                }
                 ctx.stroke();
+                ctx.setLineDash([]);
             }
+            ctx.shadowBlur = 0;
 
-            // Exit
-            let er = exit.r + Math.sin(exit.time * 5) * 3;
-            ctx.fillStyle = `rgba(0, 255, 0, 0.2)`;
-            ctx.beginPath(); ctx.arc(exit.x, exit.y, er + 10, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#0f0';
-            ctx.beginPath(); ctx.arc(exit.x, exit.y, er, 0, Math.PI * 2); ctx.fill();
-
-            // Collectibles
-            ctx.font = '20px sans-serif';
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             for (let c of collectibles) {
-                if (c.glow <= 0) continue;
-                ctx.globalAlpha = c.glow;
-                ctx.fillStyle = c.type === 'battery' ? 'rgba(255,200,0,0.5)' : 'rgba(200,50,255,0.5)';
-                ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 2, 0, Math.PI * 2); ctx.fill();
-                ctx.globalAlpha = 1;
-                ctx.fillText(c.type === 'battery' ? '🔋' : '📡', c.x, c.y);
-            }
-
-            // Enemies
-            for (let e of enemies) {
-                ctx.save();
-                ctx.translate(e.x, e.y);
-                if (e.stun > 0) {
-                    ctx.translate(Math.random() * 4 - 2, Math.random() * 4 - 2);
-                    ctx.fillStyle = (Math.random() > 0.5) ? '#00ffff' : '#0055ff';
-                } else {
-                    ctx.fillStyle = '#ff0033';
+                if (c.lit) {
+                    ctx.font = '20px sans-serif';
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = c.type === 'battery' ? '#FFD700' : '#FF00FF';
+                    let b = Math.sin(c.bob) * 5;
+                    ctx.fillText(c.type === 'battery' ? '🔋' : '📡', c.x, c.y + b);
                 }
-
-                // detailed shape
-                ctx.beginPath(); ctx.arc(0, 0, e.r, 0, Math.PI * 2); ctx.fill();
-                ctx.fillStyle = '#000';
-                let eyeA = e.time * 2;
-                ctx.beginPath(); ctx.arc(Math.cos(eyeA) * 4 - 4, -3, 2, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(Math.cos(eyeA) * 4 + 4, -3, 2, 0, Math.PI * 2); ctx.fill();
-
-                if (e.stun <= 0) {
-                    ctx.fillStyle = `rgba(255, 0, 50, 0.3)`;
-                    ctx.beginPath(); ctx.arc(0, 0, e.r + 5 + Math.sin(e.time * 10) * 2, 0, Math.PI * 2); ctx.fill();
-                }
-                ctx.restore();
             }
 
-            // Player
-            ctx.save();
-            ctx.translate(player.x, player.y);
-            ctx.fillStyle = 'rgba(0, 255, 204, 0.2)';
-            ctx.beginPath(); ctx.arc(0, 0, player.r + 8, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#00ffcc';
-            ctx.beginPath(); ctx.arc(0, 0, player.r, 0, Math.PI * 2); ctx.fill();
+            ctx.shadowBlur = 20; ctx.shadowColor = '#0f0';
+            ctx.fillStyle = `rgba(0, 255, 0, ${0.5 + Math.sin(time / 200) * 0.2})`;
+            ctx.beginPath(); ctx.arc(exit.x, exit.y, exit.r, 0, Math.PI * 2); ctx.fill();
+            ctx.shadowBlur = 0;
 
-            // Legs
-            ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 3;
-            let ls = Math.sin(player.moveTime * 15) * 5;
-            ctx.beginPath(); ctx.moveTo(-6, player.r); ctx.lineTo(-6, player.r + Math.abs(ls)); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(6, player.r); ctx.lineTo(6, player.r + Math.abs(-ls)); ctx.stroke();
+            enemies.forEach(e => e.draw(ctx));
+            player.draw(ctx);
+            pings.forEach(p => p.draw(ctx));
 
-            // Eyes
-            let angle = Math.atan2(player.vy, player.vx);
-            if (player.vx === 0 && player.vy === 0) angle = -Math.PI / 2;
-            ctx.rotate(angle);
-            ctx.fillStyle = '#000';
-            ctx.beginPath(); ctx.arc(6, -4, 2, 0, Math.PI * 2); ctx.fill();
-            ctx.beginPath(); ctx.arc(6, 4, 2, 0, Math.PI * 2); ctx.fill();
-            ctx.restore();
-
-            // Sonars
-            ctx.lineWidth = 2;
-            for (let s of sonars) {
-                let alpha = 1 - (s.r / s.maxR);
-                ctx.strokeStyle = s.super ? `rgba(200, 50, 255, ${alpha})` : `rgba(255, 255, 255, ${alpha * 0.5})`;
-                ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.stroke();
-            }
-
-            // Particles
             for (let p of particles) {
                 ctx.fillStyle = p.color;
-                ctx.globalAlpha = p.life;
-                ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, Math.PI * 2); ctx.fill();
+                let a = p.life * (p.type === 'ui' ? 1 : 2);
+                ctx.globalAlpha = Math.max(0, Math.min(1, a));
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.type === 'ui' ? 3 : 2, 0, Math.PI * 2); ctx.fill();
             }
-
+            ctx.globalAlpha = 1;
+            ctx.globalCompositeOperation = 'source-over';
             ctx.restore();
         }
 
-        function gameLoop(time) {
-            if (state !== 'playing') return;
-            requestAnimationFrame(gameLoop);
-
-            let dt = (time - lastTime) / 1000;
-            if (dt > 0.1) dt = 0.1; // cap
-            lastTime = time;
-
-            update(dt);
-            if (state === 'playing') draw();
+        function hexToRgb(hex) {
+            let r = parseInt(hex.slice(1, 3), 16);
+            let g = parseInt(hex.slice(3, 5), 16);
+            let b = parseInt(hex.slice(5, 7), 16);
+            return `${r}, ${g}, ${b}`;
         }
 
-        function gameOver(reason) {
-            state = 'gameover';
-            stopSoundtrack();
-            playDeath();
-            UI.reason.innerText = reason;
-            let scores = saveScore();
-            renderLeaderboard('leaderboard-go', scores);
-            UI.gameover.classList.remove('hidden');
+        function saveScore(lvl, t, s) {
+            let scores = JSON.parse(localStorage.getItem('sonarMazeScores') || '[]');
+            scores.push({ level: lvl, time: t, score: s });
+            scores.sort((a, b) => b.score - a.score);
+            scores = scores.slice(0, 5);
+            localStorage.setItem('sonarMazeScores', JSON.stringify(scores));
         }
 
-        function victory() {
-            state = 'victory';
-            stopSoundtrack();
-            playVictory();
-            let scores = saveScore();
-            renderLeaderboard('leaderboard-vic', scores);
-            UI.victory.classList.remove('hidden');
+        function showLeaderboard() {
+            let scores = JSON.parse(localStorage.getItem('sonarMazeScores') || '[]');
+            let html = '';
+            scores.forEach((s, i) => {
+                html += `<tr><td>${i + 1}</td><td>${s.level}</td><td>${formatTime(s.time)}</td><td>${s.score}</td></tr>`;
+            });
+            document.getElementById('leaderboard-body').innerHTML = html;
         }
 
         // Input Handling
         window.addEventListener('keydown', e => {
-            if (keys.hasOwnProperty(e.key)) keys[e.key] = 1;
-            if (e.key === ' ' && state === 'playing') { e.preventDefault(); spawnSonar(); }
-            if (e.key === 'Escape' && state === 'playing') {
-                state = 'paused'; UI.pause.classList.remove('hidden'); stopSoundtrack();
-            }
-        });
-        window.addEventListener('keyup', e => { if (keys.hasOwnProperty(e.key)) keys[e.key] = 0; });
-
-        window.addEventListener('resize', () => {
-            if (state === 'playing') { state = 'paused'; UI.pause.classList.remove('hidden'); stopSoundtrack(); }
-        });
-        window.addEventListener('blur', () => {
-            if (state === 'playing') { state = 'paused'; UI.pause.classList.remove('hidden'); stopSoundtrack(); }
+            let k = e.key.toLowerCase();
+            if (keys.hasOwnProperty(k)) keys[k] = true;
+            if (e.key.startsWith('Arrow')) keys[e.key] = true;
+            if (k === ' ' || e.key.startsWith('Arrow')) e.preventDefault();
+            if (k === ' ' && state === 'PLAYING') triggerSonar();
         });
 
-        // Touch / Mouse Sonar (outside joystick)
-        document.getElementById('game-container').addEventListener('mousedown', e => {
-            if (state !== 'playing' || e.target === UI.joyKnob || e.target === UI.joyArea) return;
-            initAudio();
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-            spawnSonar();
+        window.addEventListener('keyup', e => {
+            let k = e.key.toLowerCase();
+            if (keys.hasOwnProperty(k)) keys[k] = false;
+            if (e.key.startsWith('Arrow')) keys[e.key] = false;
         });
-        document.getElementById('game-container').addEventListener('touchstart', e => {
-            if (state !== 'playing') return;
-            initAudio();
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                let t = e.changedTouches[i];
-                let bounds = UI.joyArea.getBoundingClientRect();
-                if (t.clientX < bounds.right + 20 && t.clientY > bounds.top - 20) continue; // rough joystick area check
-                spawnSonar();
-            }
-        }, { passive: true });
+        window.addEventListener('blur', () => { if (state === 'PLAYING') pauseGame(); });
 
         // Virtual Joystick
-        function updateJoy(x, y) {
-            let rect = UI.joyArea.getBoundingClientRect();
-            let cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
-            let dx = x - cx, dy = y - cy;
-            let dist = Math.sqrt(dx * dx + dy * dy);
-            let maxD = rect.width / 2 - 10;
+        const joyZone = document.getElementById('joystick-zone');
+        const joyBase = document.getElementById('joystick-base');
+        const joyStick = document.getElementById('joystick-stick');
+        let joyTouchId = null;
 
+        document.addEventListener('touchstart', e => {
+            if (state !== 'PLAYING') return;
+            for (let t of e.changedTouches) {
+                if (t.clientX < window.innerWidth / 2) {
+                    joyActive = true; joyTouchId = t.identifier;
+                    joyBase.style.display = 'block';
+                    joyBase.style.left = t.clientX + 'px';
+                    joyBase.style.top = (t.clientY - 40) + 'px';
+                    joyStick.style.transform = `translate(-50%, -50%)`;
+                    updateJoystick(t.clientX, t.clientY - 40, t.clientX, t.clientY - 40);
+                } else {
+                    triggerSonar();
+                }
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchmove', e => {
+            if (!joyActive) return;
+            for (let t of e.changedTouches) {
+                if (t.identifier === joyTouchId) {
+                    e.preventDefault();
+                    let bx = parseFloat(joyBase.style.left);
+                    let by = parseFloat(joyBase.style.top);
+                    updateJoystick(bx, by, t.clientX, t.clientY - 40);
+                }
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchend', e => {
+            for (let t of e.changedTouches) {
+                if (t.identifier === joyTouchId) {
+                    joyActive = false; joyTouchId = null;
+                    joyBase.style.display = 'none';
+                    joyDir = { x: 0, y: 0 };
+                }
+            }
+        });
+
+        function updateJoystick(bx, by, tx, ty) {
+            let dx = tx - bx, dy = ty - by;
+            let dist = Math.hypot(dx, dy);
+            let maxD = 40;
             if (dist > maxD) { dx = (dx / dist) * maxD; dy = (dy / dist) * maxD; }
-            UI.joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
-
-            joystick.dx = (dist === 0) ? 0 : dx / maxD;
-            joystick.dy = (dist === 0) ? 0 : dy / maxD;
+            joyStick.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+            joyDir.x = dx / maxD; joyDir.y = dy / maxD;
         }
-        UI.joyArea.addEventListener('touchstart', e => { e.preventDefault(); joystick.active = true; updateJoy(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
-        UI.joyArea.addEventListener('touchmove', e => { e.preventDefault(); if (joystick.active) updateJoy(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
-        UI.joyArea.addEventListener('touchend', e => { e.preventDefault(); joystick.active = false; UI.joyKnob.style.transform = `translate(0px, 0px)`; joystick.dx = 0; joystick.dy = 0; }, { passive: false });
 
-        // Buttons
-        document.getElementById('btn-start').addEventListener('click', () => { initAudio(); initGame(); });
-        document.getElementById('btn-resume').addEventListener('click', () => {
-            UI.pause.classList.add('hidden'); state = 'playing'; lastTime = performance.now(); startSoundtrack(); requestAnimationFrame(gameLoop);
-        });
-        document.getElementById('btn-giveup').addEventListener('click', () => {
-            UI.pause.classList.add('hidden'); gameOver("Vzdal jsi to.");
-        });
-        document.getElementById('btn-restart-go').addEventListener('click', initGame);
-        document.getElementById('btn-restart-vic').addEventListener('click', initGame);
+        document.getElementById('btn-start').addEventListener('click', initGame);
+        document.getElementById('btn-restart').addEventListener('click', initGame);
+        document.getElementById('btn-resume').addEventListener('click', resumeGame);
+        document.getElementById('btn-giveup').addEventListener('click', () => endGame(false));
 
-        // First interaction init audio for browser policy
-        document.body.addEventListener('click', () => {
-            initAudio();
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-        }, { once: true });
-
+        if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(() => { });
+        }
     </script>
 </body>
 

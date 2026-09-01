@@ -1,66 +1,66 @@
-Jsi expert na vývoj webových her a algoritmizaci. Tvojí úlohou je vytvořit kompletní, plně funkční a vysoce optimalizovanou HTML5 hru "Sonar Maze" obsaženou v jediném souboru který vytvoříš - index.html. Nesmíš použít žádné externí knihovny, obrázky, zvuky ani fonty. Vše řeš čistě přes vanilla JavaScript, CSS a HTML5 Canvas a Web Audio rozhraní. Neptej se na žádné další informace, rovnou generuj. Ignoruj všechny ostatní soubory ve složce. Vygeneruj pouze čistý kód do jednoho bloku. Neuváděj žádný vysvětlující text před ani po kódu.
+You are an expert in web game development and algorithmics. Your task is to create a complete, fully functional, and highly optimized HTML5 game "Sonar Maze" contained in a single file that you will create - index.html. You must not use any external libraries, images, sounds, or fonts. Solve everything purely through vanilla JavaScript, CSS, and HTML5 Canvas and Web Audio interfaces. Do not ask for any additional information, generate immediately. Ignore all other files in the folder. Generate only clean code in a single block. Do not include any explanatory text before or after the code.
 
-# Herní mechaniky a logika
-1. Tma a Echolokace: Hrací plocha je po startu zcela černá. Hráč nevidí stěny generovaného bludiště. Hráč není jen obyčejný bod, ale je reprezentován detailnější postavičkou (vykreslenou pomocí složených tvarů přes Canvas API - tělo, hlava s pohybujícíma se nohama a očima), která vyzařuje mírnou auru.
-2. Ovládání: Pohyb přes WASD nebo šipky. Na mobilních zařízeních vygeneruj v levém spodním rohu responzivní virtuální joystick, který se na mobilních zařízeních automaticky aktivuje a na desktopu je skrytý.
-3. Sonar (Ping) a Taktické omráčení: Stiskem mezerníku (nebo tapnutím mimo joystick) vyšle hráč sonarovou vlnu. Vlna je rychle se zvětšující kružnice. Pokud vlna zasáhne nepřítele, na 2 vteřiny ho zmrazí. To přidává do hry strategii – hráč může obětovat pulz k zastavení nepřítele, který mu blokuje cestu, a bezpečně ho oběhnout. Hráč může přes omráčeného nepřítele i přejít, nepřítel mu nemůže omráčený ublížit.
-4. Odhalení stěn: Zdi jsou bez použití sonaru zcela neviditelné. Pokud hrana vlny protne stěnu bludiště, průsečík se rozzáří neonovou barvou a začne plynule mizet (fade-out v řádu 3 sekund). Barva stěn se dynamicky mění na základě barevné palety aktuálního levelu.
-5. Cíl a Překážky (Levelování): Úkolem je najít pulzující zelený východ. V mapě se vyskytují červené entity vyzařující červenou auru (nepřátelé by měli mít vizuálně zajímavější vzhled poskládaný ze základních tvarů, např. s očima a detaily, ne jen prosté kruhy). Zajisti, že se vždy alespoň 50 % nepřátel na mapě pohybuje (odráží se od stěn) a zbytek může stát na místě. Kontakt s entitou znamená okamžitý Game Over, pokud je entita omráčená, tak ní hráč může bez problému projít. Hra se skládá z 5 postupných levelů. Za každý level dostane +5 sonarů Po dokončení pátého levelu hra končí vítěznou obrazovkou. 
-6. Omezení: Hráč má k dispozici pouze 7 sonarových pulzů (UI s počítadlem v horní části obrazovky).
-7. Pohyblivé zdi (Shiftující bludiště): Některé zdi bludiště se v pravidelných intervalech plynule otevírají a zavírají - posouvají. Vizuálně to je odhaleno, když sonarová vlna prosvítí zeď, která se právě pohybuje. Hráč musí časovat svůj průchod a dávat pozor, které chodby jsou momentálně průchozí a které ne. Ujisti se že shiftující zdi nejsou vidět stějně jako zbytek bludiště, pokud je sonar neodhalí.
-8. Collectibles (Baterie a Power-Upy): Na mapě je rozmístěno několik objektů, které jsou ve tmě zcela neviditelné a odhalí se až ve chvíli, kdy je zasáhne hráčův sonar:
-    - Nabíječka (Baterie): Emoji baterie + Žlutá záře, přidá hráči +3 k počtu sonarových pulzů.
-    - Super-Ping: Emoji radaru +  Fialová záře, jednorázový masivní pulz spuštěný okamžitě po sebrání. Prosvítí část mapy, omráčí nepřátele na delší dobu a zdi zůstanou svítit 3x déle (pomalý fade-out).
-9. Vizuální stopa hráče: Z postavičky hráče při pohybu opadává drobná, slabě zářící footprints, které plynule mizí po 5 sekundách.
-10. Particlový systém a Vizuální Polish: Hra obsahuje jemné fyzikální částice přes Canvas:
-    - Když sonar narazí do zdi, odmrští z ní pár svítících jiskřiček.
-    - Při sebrání Baterie z ní vystřelí částice a ladně doplují do počítadla v UI.
-    - Při omráčení nepřítele nastane jemný glitch efekt (krátké roztřesení a změna barvy z červené na modrou se zábleskem).
-11. Skóre a "Speedrun" časovač: Hra by na pozadí měřila čas. Cílem by nebylo jen přežít, ale proběhnout 5 levelů co nejrychleji. Zbylé sonarové pulzy a sebrané baterie by se na konci hry převedly na bonusové skóre. To by hráče motivovalo hrát efektivně a šetřit pulzy.
+# Game Mechanics and Logic
+1. Darkness and Echolocation: The playing field is completely black after start. The player cannot see the walls of the generated maze. The player is represented by a more detailed character (drawn using composite shapes via the Canvas API - body, head with moving legs and eyes) that emits a mild aura.
+2. Controls: Movement via WASD or arrow keys. On mobile devices, generate a responsive virtual joystick in the bottom-left corner that automatically activates on mobile devices and is hidden on desktop.
+3. Sonar (Ping) and Tactical Stunning: By pressing the spacebar (or tapping outside the joystick) (Make sure that spacebar doesn't trigger any other action like pushing buttons), the player sends a sonar wave. The wave is a rapidly expanding circle. If the wave hits an enemy, it freezes them for 2 seconds. This adds strategy to the game – the player can sacrifice a pulse to stop an enemy blocking their path, and safely go around them. The player can also walk through a stunned enemy; a stunned enemy cannot harm them.
+4. Wall Revelation: Walls are completely invisible without using sonar. If the wave's edge intersects a maze wall, the intersection point glows with a neon color and begins to smoothly fade out over approximately 3 seconds. The wall color dynamically changes based on the current level's color palette.
+5. Goal and Obstacles (Leveling): The objective is to find the pulsating green exit. The map contains red entities emitting a red aura (enemies should have a more visually interesting appearance composed of basic shapes, e.g., with eyes and details, not just plain circles). Ensure that at least 50% of enemies on the map are always moving (bouncing off walls) and the rest may stand still. Contact with an entity means instant Game Over; if the entity is stunned, the player can pass through it without any problem. The game consists of 5 progressive levels. For each level the player receives +5 sonars. After completing the fifth level, the game ends with a victory screen.
+6. Limitation: The player has only 7 sonar pulses available (UI with a counter at the top of the screen).
+7. Moving Walls (Shifting Maze): Some maze walls smoothly open and close at regular intervals - shifting. This is visually revealed when a sonar wave illuminates a wall that is currently moving. The player must time their passage and watch which corridors are currently passable and which are not. Make sure shifting walls are not visible the same as the rest of the maze unless the sonar reveals them.
+8. Collectibles (Batteries and Power-Ups): Several objects are placed on the map that are completely invisible in the dark and are revealed only when hit by the player's sonar:
+    - Charger (Battery): Battery emoji + Yellow glow, adds +3 to the player's sonar pulse count.
+    - Super-Ping: Radar emoji + Purple glow, a one-time massive pulse triggered immediately upon collection. Illuminates a portion of the map, stuns enemies for a longer duration, and walls remain lit 3x longer (slow fade-out).
+9. Player Visual Trail: Small, faintly glowing footprints fall from the player character while moving, which smoothly fade after 5 seconds.
+10. Particle System and Visual Polish: The game contains subtle physics-based particles via Canvas:
+    - When sonar hits a wall, a few glowing sparks bounce off it.
+    - When collecting a Battery, particles shoot from it and gracefully float toward the UI counter.
+    - When stunning an enemy, a subtle glitch effect occurs (brief shaking and color change from red to blue with a flash).
+11. Score and "Speedrun" Timer: The game measures time in the background. The goal is not just to survive, but to run through 5 levels as quickly as possible. Remaining sonar pulses and collected batteries are converted to bonus score at the end of the game. This motivates the player to play efficiently and conserve pulses.
 
-# Struktura levelů
-- Level 1: Tyrkysová, 3 enemy
-- Level 2: Fialová, 4 enemy
-- Level 3: Zelená, 6 enemy
-- Level 4: Zlatá, 8 enemy
-- Level 5: Oranžová, 10 enemy
+# Level Structure
+- Level 1: Cyan, 4 enemies
+- Level 2: Purple, 6 enemies
+- Level 3: Green, 8 enemies
+- Level 4: Gold, 10 enemies
+- Level 5: Orange, 12 enemies
 
-# Technické požadavky a Edge Cases
-- Herní smyčka: Hra musí běžet plynule na stabilních 30 FPS s využitím nativní animační smyčky prohlížeče a delta-time. Světelné efekty (záře, neonové linie, hráče) musí používat aditivní blending a dynamické rozostření pro realistický glow.
-- Procedurální generování: Na začátku každé hry algoritmicky vygeneruj bludiště (např. pomocí upraveného algoritmu náhodné procházky nebo rekurzivního dělení), aby byla zaručena opakovatelná hratelnost a existence cesty do cíle.
-- Fyzika a Kolize:
-    - Implementuj substep/multi-step pohyb – pohyb hráče rozděl v každém snímku na minimálně 4 podkroky (move → resolve → clamp v každém podkroku). Tím se zabrání průchodu zdí (tunneling) i při výpadku FPS.
-    - Kolize typu kruh vs. úsečka musí ošetřit i edge case, kdy se střed kruhu ocitne přesně na úsečce (distance ≈ 0) – v tom případě hráče vytlač podél kolmice ke zdi.
-    - K vyřešené kolizi vždy přidej malý epsilon k push vektoru, aby nedošlo k numerickému oscilování na hraně zdi.
-    - Fyzikální výpočty (kolize, pohyb) musí být zcela nezávislé na vizuálních efektech – sonarový ping, partikly ani zvuk nesmí ovlivnit detekci kolizí.
-    - Hráč se nesmí zaseknout ve zdi ani po rychlém pohybu do rohu.
-- Canvas a mřížka: Fixní logické rozlišení (např. 1000x800) i mřížka (20x15). Škálování pouze přes CSS (zachovat poměr stran, bez scrollování). Nepřepočítávat souřadnice.
-- Kamera: Při šířce <1000px mapu neškálovat na obrazovku. Místo toho použít dynamickou kameru sledující hráče.
-- Orientace a události: Vynutit landscape přes Screen Orientation API. V portrait režimu (CSS) skrýt hru a vypsat "Otočte zařízení". Při resize nebo otočení hru pauznout.
-- Prevence zahlcení: Zaveď 1000ms cooldown na sonar, aby hráč nemohl nekonečným spamováním mezerníku přetížit vykreslování v paměti.
-- Zajisti aby hře nepadaly fps při aktivaci sonaru:
-    - Optimalizace částic: Omez generování částic tak, aby odletěly ze zdi pouze jednou (když se zeď poprvé rozsvítí), místo toho, aby se generovaly v každém snímku, dokud se vlna dotýká zdi. Nepoužívej nativní efekty stínů a záře u malých částic.
-    - Optimalizace vykreslování zdí (Draw Batching): Vykresluj neonové zdi efektivně seskupením segmentů zdí podle jejich úrovně jasu (např. do 10 kbelíků podle průhlednosti). Místo volání kreslících funkcí pro každý jednotlivý segment zdi zvlášť nakresli celou vrstvu se stejným jasem naráz (jediným tahem).
-    - Optimalizace matematiky: Při výpočtu vzdáleností mezi sonarovou vlnou a objekty (zdmi, nepřáteli) nahraď výpočetně náročnou funkci pro výpočet přepony porovnáváním vzdálenosti na druhou.
-- Ujisti se že hra je vždy je dokončitelná, vygeneruj mapu, kde je vždy cesta k východu.
-- Východ je vidět i když na něj hráč nemá aktivovaný sonar. 
-- Baterie a bonusové sonary jsou vidět pouze pokud hráč aktivuje sonar.
-- Nepřátelské entity hráč vidí celou dobu.
+# Technical Requirements and Edge Cases
+- Game Loop: The game must run smoothly at a stable 30 FPS using the browser's native animation loop and delta-time. Light effects (glow, neon lines, player aura) must use additive blending and dynamic blur for realistic glow.
+- Procedural Generation: At the start of each game, algorithmically generate a maze (e.g., using a modified random walk algorithm or recursive division) to ensure repeatable playability and the existence of a path to the goal.
+- Physics and Collisions:
+    - Implement substep/multi-step movement – divide the player's movement in each frame into at least 4 substeps (move → resolve → clamp in each substep). This prevents wall tunneling even during FPS drops.
+    - Circle vs. line segment collisions must handle the edge case where the circle's center ends up exactly on the segment (distance ≈ 0) – in that case, push the player along the wall's perpendicular.
+    - Always add a small epsilon to the push vector of a resolved collision to prevent numerical oscillation at wall edges.
+    - Physics calculations (collisions, movement) must be completely independent of visual effects – sonar ping, particles, and sound must not affect collision detection.
+    - The player must not get stuck in a wall even after fast movement into a corner.
+- Canvas and Grid: Fixed logical resolution (e.g., 1000x800) and grid (20x15). Scaling only via CSS (maintain aspect ratio, no scrolling). Do not recalculate coordinates.
+- Camera: At widths <1000px, do not scale the map to the screen. Instead, use a dynamic camera following the player.
+- Orientation and Events: Enforce landscape via the Screen Orientation API. In portrait mode (CSS), hide the game and display "Rotate your device". On resize or rotation, pause the game.
+- Overload Prevention: Implement a 1000ms cooldown on sonar so the player cannot overload rendering in memory by endlessly spamming the spacebar.
+- Ensure FPS does not drop when sonar is activated:
+    - Particle Optimization: Limit particle generation so they fly off the wall only once (when the wall first lights up), instead of being generated every frame while the wave touches the wall. Do not use native shadow and glow effects on small particles.
+    - Wall Rendering Optimization (Draw Batching): Render neon walls efficiently by grouping wall segments by their brightness level (e.g., into 10 buckets by opacity). Instead of calling draw functions for each individual wall segment separately, draw the entire layer with the same brightness at once (single stroke).
+    - Math Optimization: When calculating distances between the sonar wave and objects (walls, enemies), replace the computationally expensive hypotenuse function with squared distance comparison.
+- Ensure the game is always completable; generate a map where there is always a path to the exit.
+- The exit is visible even when the player has not activated sonar.
+- Batteries and bonus sonars are visible only if the player activates sonar.
+- Enemy entities are visible to the player at all times.
 
-# UI a Stavy aplikace (Handling prázdných stavů)
-- Implementuj moderní CSS překryvné vrstvy pro stavy:
-  1. Main Menu (Pravidla hry a tlačítko Start).
-  2. Pause Menu (Při ztrátě focusu okna nebo změně rozlišení) - Přidej možnost při pausnutí kliknout na give up což znamená konec hry, vyskočí i tak game over obrazovka s výsledky a statistikou. 
-  3. Game Over (Smrt nebo nedostatek pulzů).
-  4. Victory (Dosažení cíle).
-- Rozděl obrazovku na horní a spodní oblast, v horní bude tenký proužek s UI (skóre, level, pulzy, baterie) a pod ním bude herní plátno. Jde o to aby se vrchní strana mapy nepřekrývaly s tímto info panelem.
-- Jakmile nastane Game Over nebo hráč hru dokončí (Victory), zobraz navíc tabulku s nejlepšími lokálními skóre. Skóre se bude ukládat do lokálního úložiště prohlížeče a tabulka zobrazí top 5 nejlepších výsledků. Bude tam vypsán čas ve kterém nastal game over, čas, dosažený level a skóre, které se bude počítat na základě času, levelu a sebraných baterií a sonarů. 
-- Tlačítko "Hrát znovu" musí korektně vymazat veškeré event listenery, vyčistit pole částic/vln a resetovat stavový automat bez nutnosti reloadu stránky. Design UI by měl být minimalistický, font sans-serif, bílý text na černém poloprůhledném pozadí s neonovými akcenty.
+# UI and Application States (Empty State Handling)
+- Implement modern CSS overlays for states:
+  1. Main Menu (Game rules and Start button).
+  2. Pause Menu (On window focus loss or resolution change) - Add the option when paused to click "give up", which means game over; the game over screen with results and statistics will appear.
+  3. Game Over (Death or lack of pulses).
+  4. Victory (Reaching the goal).
+- Split the screen into upper and lower areas; the upper area will contain a thin strip with UI (score, level, pulses, batteries) and below it the game canvas. The point is that the top side of the map should not overlap with this info panel.
+- When Game Over occurs or the player completes the game (Victory), additionally display a table with the best local scores. Scores will be saved to browser local storage and the table will display the top 5 best results. It will show the time at which game over occurred, time, level reached, and score, which will be calculated based on time, level, and collected batteries and sonars.
+- The "Play Again" button must correctly clear all event listeners, empty particle/wave arrays, and reset the state machine without requiring a page reload. The UI design should be minimalistic, sans-serif font, white text on a black semi-transparent background with neon accents.
 
-# Audio (Zvukové efekty a hudba)
-Implementuj nativní zvukové efekty a soundtrack pomocí Web Audio API:
-- Inicializace: Vytvoř zvukový kontext a korektně ošetři jeho obnovení pro prohlížečové politiky automatického přehrávání.
-- Procedurální Soundtrack: Vytvoř na pozadí temný ambientní soundtrack. Spusť nízkofrekvenční oscilátory (např. 40-60 Hz) pro hluboký hukot a přes časovač  nepravidelně přehrávej středně hlasité, táhlé noty z temné stupnice pro budování napětí. Rychlost a intenzita se zvyšuje s dosaženým levelem.
-- Ping (Sonar): Krátký zvuk při vyslání sonaru. Použij sinusový oscilátor s rychle klesající frekvencí z 1400 Hz na 180 Hz)a exponenciálně klesající hlasitostí v průběhu 0.9 vteřiny.
-- Smrt (Game Over): Drsnější zvuk prohry. Zkombinuj čtvercové a pilovité oscilátory s klesající frekvencí z 150/90 Hz na 30 Hz a postupným ztlumením za 0.6 vteřiny.
-- Vítězství: Přehraj arpeggio 4 po sobě jdoucích tónů např. frekvence 523, 659, 784, 1047 Hz pomocí sinusového oscilátoru s plynulým náběhem a útlumem hlasitosti pro každý tón.
+# Audio (Sound Effects and Music)
+Implement native sound effects and soundtrack using the Web Audio API:
+- Initialization: Create an audio context and properly handle its resumption for browser autoplay policies.
+- Procedural Soundtrack: Create a dark ambient soundtrack in the background. Start low-frequency oscillators (e.g., 40-60 Hz) for a deep hum and via a timer irregularly play medium-volume, sustained notes from a dark scale to build tension. Speed and intensity increase with the level reached.
+- Ping (Sonar): A short sound when sending sonar. Use a sine oscillator with rapidly decreasing frequency from 1400 Hz to 180 Hz and exponentially decreasing volume over 0.9 seconds.
+- Death (Game Over): A harsher loss sound. Combine square and sawtooth oscillators with decreasing frequency from 150/90 Hz to 30 Hz and gradual attenuation over 0.6 seconds.
+- Victory: Play an arpeggio of 4 consecutive tones, e.g., frequencies 523, 659, 784, 1047 Hz using a sine oscillator with smooth attack and volume decay for each tone.
