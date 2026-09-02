@@ -4,7 +4,7 @@ This project was created for [Summer Coding Challenge 2026](https://www.pracujpr
 
 # Website
 
-You can play this project here: [https://endurovojta173.github.io/profiq-contest/](https://endurovojta173.github.io/Sonar_Maze_Profiq_Contest/)
+You can play this project here: https://endurovojta173.github.io/Sonar_Maze_Profiq_Contest/
 
 # About
 
