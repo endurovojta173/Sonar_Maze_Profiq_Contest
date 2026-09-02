@@ -34,7 +34,7 @@ You are an expert in web game development and algorithmics. Your task is to crea
     - Always add a small epsilon to the push vector of a resolved collision to prevent numerical oscillation at wall edges.
     - Physics calculations (collisions, movement) must be completely independent of visual effects – sonar ping, particles, and sound must not affect collision detection.
     - The player must not get stuck in a wall even after fast movement into a corner.
-- Canvas and Grid: Fixed logical resolution (e.g., 1000x800) and grid (20x15). Scaling only via CSS (maintain aspect ratio, no scrolling). Do not recalculate coordinates. Dont make game automatically fullscreen!
+- Canvas and Grid: Fixed logical resolution (e.g., 1000x800) and grid (20x15). Scaling only via CSS (maintain aspect ratio, no scrolling). Do not recalculate coordinates. Dont make game automatically fullscreen! Dont limit game by black bars under or above. Make the game comfortable on all devices, whether on mobile or desktop!
 - Camera: At widths <1000px, do not scale the map to the screen. Instead, use a dynamic camera following the player.
 - Orientation and Events: Enforce landscape via the Screen Orientation API. In portrait mode (CSS), hide the game and display "Rotate your device". On resize or rotation, pause the game.
 - Overload Prevention: Implement a 1000ms cooldown on sonar so the player cannot overload rendering in memory by endlessly spamming the spacebar.
